@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Traduções - Tradutor Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #4285F4;
+            font-weight: 600;
+        }
+        .history-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+        }
+        .history-lang {
+            font-weight: 500;
+            color: #4285F4;
+            margin-bottom: 10px;
+        }
+        .history-text {
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 10px;
+        }
+        .history-date {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-align: right;
+        }
+        .history-model {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .btn-translate-again {
+            font-size: 0.9rem;
+        }
+        .navbar {
+            background-color: #4285F4;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .navbar-brand {
+            color: white;
+            font-weight: 600;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .nav-link:hover {
+            color: white;
+        }
+        .empty-history {
+            text-align: center;
+            padding: 50px 20px;
+            color: #6c757d;
+        }
+        .empty-history i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Tradutor Web</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Tradutor</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/models">Modelos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/history">Histórico</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="header">
+            <h1>Histórico de Traduções</h1>
+            <p>Suas traduções recentes</p>
+        </div>
+
+        <div id="history-container">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p>Carregando histórico...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTranslationHistory();
+        });
+
+        function loadTranslationHistory() {
+            const historyData = JSON.parse(localStorage.getItem('translationHistory')) || [];
+            const container = document.getElementById('history-container');
+            
+            if (historyData.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-history">
+                        <i class="fas fa-history"></i>
+                        <h4>Nenhuma tradução encontrada</h4>
+                        <p>As traduções que você realizar aparecerão aqui.</p>
+                        <a href="/" class="btn btn-primary mt-3">Fazer uma tradução</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            historyData.forEach((item, index) => {
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleString('pt-BR');
+                
+                html += `
+                    <div class="history-card">
+                        <div class="history-lang">
+                            ${item.sourceLang || 'Idioma de origem'} → ${item.targetLang || 'Idioma de destino'}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="history-text">${item.sourceText}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="history-text">${item.translatedText}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div class="history-model">
+                                <small><i class="fas fa-robot me-1"></i> ${item.modelId}</small>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <div class="history-date me-2">${formattedDate}</div>
+                                <a href="/?model=${item.modelId}&text=${encodeURIComponent(item.sourceText)}" 
+                                   class="btn btn-sm btn-outline-primary btn-translate-again">
+                                   <i class="fas fa-redo-alt"></i> Traduzir novamente
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

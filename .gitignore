@@ -1,0 +1,61 @@
+# Arquivos de ambiente virtual
+venv/
+env/
+ENV/
+
+# Arquivos de cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Arquivos de ambiente
+.env
+.venv
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Arquivos de distribuição / packaging
+dist/
+build/
+*.egg-info/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Arquivos específicos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos específicos do IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Arquivos de modelos - para evitar commits acidentais de grandes arquivos de modelo
+models/**/*.keras
+models/**/*.h5
+models/**/*.pb
+models/**/*.onnx
+models/**/*.bin
+models/**/*.pt
+
+# Exceto os arquivos de configuração dos modelos
+!models/**/config.json
+!models/**/*tokenizer.json
+
+# Arquivos de dados grandes
+*.csv
+*.zip
+*.tar.gz
+
+# Arquivos específicos do Flask
+instance/
+.webassets-cache

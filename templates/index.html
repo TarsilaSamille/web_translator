@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tradutor Web</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .translator-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .lang-select {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .translation-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            min-height: 200px;
+            resize: none;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #4285F4;
+            font-weight: 600;
+        }
+        .translation-area {
+            position: relative;
+        }
+        .character-count {
+            position: absolute;
+            bottom: 8px;
+            right: 25px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .btn-translate {
+            background-color: #4285F4;
+            border-color: #4285F4;
+            font-weight: 500;
+        }
+        .btn-translate:hover {
+            background-color: #3367d6;
+            border-color: #3367d6;
+        }
+        .btn-swap {
+            background-color: transparent;
+            border: none;
+            color: #4285F4;
+            font-size: 1.5rem;
+            padding: 0 10px;
+            cursor: pointer;
+        }
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285F4;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 25px;
+            background-color: transparent;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .copy-btn:hover {
+            background-color: #e9ecef;
+        }
+        #footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .navbar {
+            background-color: #4285F4;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .navbar-brand {
+            color: white;
+            font-weight: 600;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .nav-link:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Tradutor Web</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/">Tradutor</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/models">Modelos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/history">Histórico</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="translator-container">
+            <div class="header">
+                <h1>Tradutor Web</h1>
+                <p>Traduza textos entre diferentes idiomas</p>
+            </div>
+
+            <div class="lang-select">
+                <select id="model-selector" class="form-select">
+                    {% for model in models %}
+                    <option value="{{ model.id }}">{{ model.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="translation-area">
+                        <label for="source-text">Texto original</label>
+                        <textarea id="source-text" class="form-control translation-box" placeholder="Digite o texto para traduzir"></textarea>
+                        <div class="character-count"><span id="source-chars">0</span> / 5000</div>
+                        <button class="copy-btn" onclick="copyText('source-text')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="translation-area">
+                        <label for="target-text">Tradução</label>
+                        <textarea id="target-text" class="form-control translation-box" placeholder="Tradução aparecerá aqui" readonly></textarea>
+                        <div class="character-count"><span id="target-chars">0</span> caracteres</div>
+                        <button class="copy-btn" onclick="copyText('target-text')">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <button id="translate-btn" class="btn btn-primary btn-translate">Traduzir</button>
+                <div id="loader" class="loader mt-3"></div>
+            </div>
+            
+            <div id="footer">
+                <p>Powered by modelos de tradução neural</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sourceText = document.getElementById('source-text');
+            const targetText = document.getElementById('target-text');
+            const translateBtn = document.getElementById('translate-btn');
+            const modelSelector = document.getElementById('model-selector');
+            const loader = document.getElementById('loader');
+            const sourceChars = document.getElementById('source-chars');
+            const targetChars = document.getElementById('target-chars');
+
+            // Verificar se há um modelo e texto na URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlModel = urlParams.get('model');
+            const urlText = urlParams.get('text');
+            
+            // Verificar modelos salvos anteriormente
+            const lastModel = getLastUsedModel();
+            
+            // Definir o modelo selecionado
+            if (urlModel && document.querySelector(`option[value="${urlModel}"]`)) {
+                modelSelector.value = urlModel;
+            } else if (lastModel && document.querySelector(`option[value="${lastModel}"]`)) {
+                modelSelector.value = lastModel;
+            }
+            
+            // Preencher texto se estiver na URL
+            if (urlText) {
+                sourceText.value = decodeURIComponent(urlText);
+                sourceChars.textContent = sourceText.value.length;
+                
+                // Traduzir automaticamente se houver texto
+                setTimeout(() => {
+                    translate();
+                }, 500);
+            }
+            
+            // Salvar modelo quando alterado
+            modelSelector.addEventListener('change', function() {
+                saveLastUsedModel(this.value);
+            });
+
+            // Atualizar contagem de caracteres
+            sourceText.addEventListener('input', function() {
+                const charCount = this.value.length;
+                sourceChars.textContent = charCount;
+                
+                // Desativar se ultrapassar o limite
+                if (charCount > 5000) {
+                    this.value = this.value.substring(0, 5000);
+                    sourceChars.textContent = 5000;
+                }
+            });
+
+            // Traduzir ao pressionar o botão
+            translateBtn.addEventListener('click', translate);
+
+            // Traduzir ao pressionar Ctrl+Enter
+            sourceText.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    translate();
+                }
+            });
+
+            function translate() {
+                const text = sourceText.value.trim();
+                const modelId = modelSelector.value;
+                
+                if (!text) {
+                    alert("Por favor, digite algum texto para traduzir.");
+                    return;
+                }
+                
+                // Mostrar loader e desativar botão
+                loader.style.display = 'block';
+                translateBtn.disabled = true;
+                
+                // Fazer a requisição para a API
+                fetch('/api/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        model: modelId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        targetText.value = data.translated_text;
+                        targetChars.textContent = data.translated_text.length;
+                        
+                        // Salvar no histórico
+                        saveTranslationHistory({
+                            sourceText: text,
+                            translatedText: data.translated_text,
+                            modelId: modelId,
+                            sourceLang: data.source_language,
+                            targetLang: data.target_language
+                        });
+                    } else {
+                        targetText.value = `Erro: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    targetText.value = `Erro de conexão: ${error}`;
+                })
+                .finally(() => {
+                    // Esconder loader e reativar botão
+                    loader.style.display = 'none';
+                    translateBtn.disabled = false;
+                });
+            }
+        });
+
+        function copyText(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            element.setSelectionRange(0, 99999); // Para dispositivos móveis
+            document.execCommand('copy');
+            
+            // Mostrar feedback visual temporário
+            const copyBtn = event.currentTarget;
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
