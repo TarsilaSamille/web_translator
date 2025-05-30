@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# filepath: /Users/tarsilasamille/IdeaProjects/web_translator/static/js/models.js
 
 /**
  * Funções relacionadas ao gerenciamento de modelos
@@ -68,4 +65,81 @@ function unloadModel(modelId) {
                 `<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro de conexão</span>`;
             document.getElementById(`unload-${modelId}`).disabled = false;
         });
+}
+
+// Baixar um novo modelo do Hugging Face
+function downloadModel() {
+    // Obter os valores do formulário
+    const username = document.getElementById('hf-username').value.trim();
+    const repo = document.getElementById('hf-repo').value.trim();
+    const token = document.getElementById('hf-token').value.trim();
+    const modelPath = document.getElementById('model-path').value.trim();
+    
+    // Validar entradas
+    if (!username || !repo) {
+        alert('Por favor, preencha o usuário e o repositório do Hugging Face.');
+        return;
+    }
+    
+    // Mostrar status de download
+    const downloadStatus = document.getElementById('download-status');
+    downloadStatus.classList.remove('d-none');
+    downloadStatus.classList.add('alert-info');
+    downloadStatus.innerHTML = `
+        <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Baixando...</span>
+            </div>
+            <div>Baixando modelo ${username}/${repo}... Este processo pode levar alguns minutos.</div>
+        </div>
+    `;
+    
+    // Enviar solicitação para o backend
+    fetch('/api/models/download', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: username,
+            repo: repo,
+            token: token,
+            path: modelPath
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            downloadStatus.classList.remove('alert-info');
+            downloadStatus.classList.add('alert-success');
+            downloadStatus.innerHTML = `
+                <div>
+                    <i class="fas fa-check-circle"></i> 
+                    Modelo baixado com sucesso! 
+                    <button class="btn btn-sm btn-primary ms-2" onclick="fetchModels()">
+                        <i class="fas fa-sync"></i> Atualizar Lista
+                    </button>
+                </div>
+            `;
+        } else {
+            downloadStatus.classList.remove('alert-info');
+            downloadStatus.classList.add('alert-danger');
+            downloadStatus.innerHTML = `
+                <div>
+                    <i class="fas fa-exclamation-circle"></i> 
+                    Erro ao baixar modelo: ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        downloadStatus.classList.remove('alert-info');
+        downloadStatus.classList.add('alert-danger');
+        downloadStatus.innerHTML = `
+            <div>
+                <i class="fas fa-exclamation-circle"></i> 
+                Erro de conexão: ${error.toString()}
+            </div>
+        `;
+    });
 }

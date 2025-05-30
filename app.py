@@ -70,11 +70,11 @@ def get_available_models():
             except Exception as e:
                 print(f"Erro ao processar modelo {model_dir}: {e}")
     
-    # Adicionar também o modelo de teste english_snejag_translator
-    test_model_path = "/Users/tarsilasamille/IdeaProjects/Translation/test/english_snejag_translator"
-    if os.path.exists(test_model_path):
+    # Verificar também se há modelo english_snejag_translator baixado pelo download_model.py
+    downloaded_model_path = os.path.join(os.path.dirname(__file__), "models", "english_snejag_translator")
+    if os.path.exists(downloaded_model_path):
         try:
-            config_path = os.path.join(test_model_path, "config.json")
+            config_path = os.path.join(downloaded_model_path, "config.json")
             if os.path.exists(config_path):
                 with open(config_path, 'r') as f:
                     config = json.load(f)
@@ -84,13 +84,14 @@ def get_available_models():
                 
                 available_models.append({
                     "id": "english_snejag_translator",
-                    "path": test_model_path,
+                    "path": downloaded_model_path,
                     "source_language": source_lang,
                     "target_language": target_lang,
                     "display_name": f"{source_lang.capitalize()} → {target_lang.capitalize()}"
                 })
+                print(f"Modelo english_snejag_translator encontrado em: {downloaded_model_path}")
         except Exception as e:
-            print(f"Erro ao processar modelo de teste: {e}")
+            print(f"Erro ao processar modelo baixado: {e}")
     
     return available_models
 
@@ -213,6 +214,65 @@ def api_unload_model(model_id):
         return jsonify({
             "success": False,
             "error": f"Erro ao descarregar modelo: {str(e)}"
+        }), 500
+        
+@app.route('/api/models/download', methods=['POST'])
+def api_download_model():
+    """Faz o download de um modelo do Hugging Face"""
+    data = request.json
+    
+    if not data:
+        return jsonify({"success": False, "error": "Dados JSON não fornecidos"}), 400
+    
+    username = data.get('username')
+    repo = data.get('repo')
+    token = data.get('token')
+    path = data.get('path')
+    
+    if not username or not repo:
+        return jsonify({"success": False, "error": "Usuário e repositório são obrigatórios"}), 400
+    
+    if not path:
+        path = os.path.join('models', f"{username}_{repo}")
+    
+    # Verificar se o diretório models existe, criar se não
+    models_dir = os.path.join(os.path.dirname(__file__), "models")
+    os.makedirs(models_dir, exist_ok=True)
+    
+    # Verificar se o caminho é relativo e converter para absoluto se necessário
+    if not os.path.isabs(path):
+        path = os.path.join(os.path.dirname(__file__), path)
+    
+    try:
+        # Importar o módulo de download e executar
+        import sys
+        from download_model import download_model_from_huggingface, setup_model_for_inference
+        
+        # Fazer download
+        success = download_model_from_huggingface(username, repo, token, path)
+        
+        if success:
+            # Configurar para inferência
+            setup_success = setup_model_for_inference(path)
+            return jsonify({
+                "success": True,
+                "message": "Modelo baixado com sucesso",
+                "path": path,
+                "setup_success": setup_success
+            })
+        else:
+            return jsonify({
+                "success": False,
+                "error": "Erro ao baixar o modelo. Verifique as credenciais e o repositório."
+            }), 500
+    
+    except Exception as e:
+        import traceback
+        print(f"Erro ao baixar modelo: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            "success": False,
+            "error": f"Erro ao baixar modelo: {str(e)}"
         }), 500
 
 @app.route('/api/translate', methods=['POST'])
