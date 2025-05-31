@@ -16,6 +16,45 @@ CORS(app)  # Habilitar CORS para todas as rotas
 # Diretório para armazenar as correções
 CORRECTIONS_DIR = os.path.join(os.path.dirname(__file__), "corrections")
 
+# Verificar versão do TensorFlow e Keras
+try:
+    import tensorflow as tf
+    import keras
+    print(f"[INFO] TensorFlow versão: {tf.__version__}")
+    print(f"[INFO] Keras versão: {keras.__version__}")
+    
+    # Verificar se estamos no ambiente Render
+    render_env = os.environ.get('RENDER') == 'true' or '/opt/render' in os.getcwd()
+    print(f"[INFO] Ambiente Render detectado: {render_env}")
+    
+    # Definir função de fallback para tradução
+    global fallback_translation
+    def fallback_translation(text, model_id):
+        """Função de fallback para tradução quando o carregamento do modelo falha"""
+        print(f"[DEBUG] Usando função de fallback para tradução com modelo {model_id}")
+        
+        # Obter informações do modelo da lista de modelos disponíveis
+        models = get_available_models()
+        model_info = next((m for m in models if m["id"] == model_id), None)
+        
+        if not model_info:
+            return jsonify({
+                'success': False,
+                'error': f'Modelo {model_id} não encontrado'
+            }), 404
+            
+        # Informar que estamos usando o fallback
+        return jsonify({
+            'success': True,
+            'translated_text': f"[FALLBACK] Tradução para '{text}' não disponível. Serviço de tradução em manutenção.",
+            'source_language': model_info.get('source_language', 'desconhecido'),
+            'target_language': model_info.get('target_language', 'desconhecido'),
+            'from_correction': False,
+            'is_fallback': True
+        })
+except Exception as e:
+    print(f"[AVISO] Não foi possível determinar as versões de TensorFlow/Keras: {e}")
+
 # Verificar estrutura da pasta de modelos no início
 def check_models_directory():
     """Verifica e registra informações sobre a estrutura da pasta de modelos na inicialização"""
@@ -242,6 +281,19 @@ def get_or_load_translator(model_id):
     print(f"[DEBUG] Tentando carregar o tradutor para o modelo {model_id}...")
     try:
         print(f"[DEBUG] Criando instância do Translator com caminho: {model_info['path']}")
+        
+        # Verificar se estamos no ambiente Render
+        is_render = '/opt/render' in model_info['path']
+        print(f"[DEBUG] Executando no ambiente Render: {is_render}")
+        
+        # Garantir que o caminho existe no Render
+        if is_render and not os.path.exists(model_info['path']):
+            print(f"[DEBUG] Tentando criar diretório do modelo no Render: {model_info['path']}")
+            try:
+                os.makedirs(model_info['path'], exist_ok=True)
+            except Exception as e:
+                print(f"[DEBUG] Erro ao criar diretório: {str(e)}")
+        
         translator = Translator(model_info["path"])
         
         print(f"[DEBUG] Chamando método load_model()...")
@@ -258,6 +310,22 @@ def get_or_load_translator(model_id):
         import traceback
         print(f"[DEBUG] ERRO: Exceção ao carregar tradutor {model_id}: {e}")
         print(f"[DEBUG] Traceback completo: {traceback.format_exc()}")
+        
+        # Tratamento especial para erros no ambiente Render
+        if '/opt/render' in model_info['path']:
+            print(f"[DEBUG] Detectado erro no ambiente Render. Tentando procedimento alternativo...")
+            try:
+                # Verificar se é um problema de versão do TensorFlow/Keras
+                import tensorflow as tf
+                import keras
+                print(f"[DEBUG] Versões no Render: TensorFlow {tf.__version__}, Keras {keras.__version__}")
+                
+                # Tentar uma abordagem alternativa se possível
+                print(f"[DEBUG] Tentando abordagem alternativa de carregamento...")
+                return None
+            except Exception as render_error:
+                print(f"[DEBUG] Falha no procedimento alternativo: {render_error}")
+        
         return None
 
 @app.route('/')

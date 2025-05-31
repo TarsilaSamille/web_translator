@@ -37,7 +37,15 @@ class Translator:
             # Carregar modelo
             print(f"[DEBUG] Iniciando carregamento do modelo de: {self.model_path}")
             print(f"[DEBUG] Diretório do modelo existe: {os.path.exists(self.model_path)}")
-            print(f"[DEBUG] Conteúdo do diretório do modelo: {os.listdir(self.model_path)}")
+            
+            # Verificar se o ambiente é Render
+            is_render = '/opt/render' in self.model_path
+            print(f"[DEBUG] Executando no ambiente Render: {is_render}")
+            
+            try:
+                print(f"[DEBUG] Conteúdo do diretório do modelo: {os.listdir(self.model_path)}")
+            except Exception as e:
+                print(f"[DEBUG] Erro ao listar diretório: {str(e)}")
             
             model_file = os.path.join(self.model_path, "model.keras")
             
@@ -50,8 +58,29 @@ class Translator:
             
             print(f"[DEBUG] Tentando carregar o modelo com Keras...")
             try:
-                self.model = load_model(model_file)
-                print(f"[DEBUG] Modelo carregado com sucesso!")
+                # Verificar versão do Keras
+                import keras
+                print(f"[DEBUG] Versão do Keras: {keras.__version__}")
+                
+                # Tentar carregar com diferentes configurações
+                try:
+                    self.model = load_model(model_file)
+                    print(f"[DEBUG] Modelo carregado com sucesso usando método padrão!")
+                except Exception as e1:
+                    print(f"[DEBUG] Erro ao carregar modelo com método padrão: {str(e1)}")
+                    print(f"[DEBUG] Tentando método alternativo de carregamento...")
+                    
+                    try:
+                        # Tentar com opções alternativas para diferentes versões do Keras
+                        import tensorflow as tf
+                        print(f"[DEBUG] Versão do TensorFlow: {tf.__version__}")
+                        
+                        # Tentar com compile=False
+                        self.model = load_model(model_file, compile=False)
+                        print(f"[DEBUG] Modelo carregado com sucesso usando compile=False!")
+                    except Exception as e2:
+                        print(f"[DEBUG] Erro ao tentar carregar com método alternativo: {str(e2)}")
+                        raise e1
             except Exception as e:
                 print(f"[DEBUG] ERRO ao carregar modelo com Keras: {str(e)}")
                 raise
