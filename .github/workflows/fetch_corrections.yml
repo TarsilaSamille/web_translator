@@ -1,0 +1,49 @@
+name: Manter Servidor Ativo e Baixar Correções
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # A cada 10 minutos
+  workflow_dispatch:        # Permite acionamento manual
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Ping servidor
+      run: |
+        for i in {1..3}; do
+          curl -s -o /dev/null -w "Ping %{http_code}\n" https://web-translator.onrender.com/api/models
+          sleep 5
+        done
+      
+  fetch:
+    runs-on: ubuntu-latest
+    needs: keep-alive
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v3
+
+    - name: Configurar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Instalar dependências
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    - name: Criar diretório de dados
+      run: mkdir -p data
+
+    - name: Executar script de busca de correções
+      run: python fetch_corrections.py
+
+    - name: Commit das alterações
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git add data/
+        git commit -m "Atualização automática das correções [skip ci]" || echo "Nenhuma mudança para commit"
+        git push

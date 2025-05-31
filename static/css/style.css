@@ -1,6 +1,14 @@
 /* Estilos específicos do aplicativo */
+body {
+    font-family: 'Noto Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Serif', serif;
+}
+
 .brand-color {
-    color: #4285F4;
+    color: #001524;
 }
 
 .footer-info {
@@ -8,6 +16,18 @@
     text-align: center;
     font-size: 0.85rem;
     color: #6c757d;
+}
+
+.text-multilingual {
+    font-family: 'Noto Sans', sans-serif;
+}
+
+.source-text {
+    font-family: 'Noto Sans', sans-serif;
+}
+
+.target-text {
+    font-family: 'Noto Serif', serif;
 }
 
 /* Animações */

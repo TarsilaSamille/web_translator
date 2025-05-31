@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correções de Traduções - Tradutor Web</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#001524',
+                        primaryDark: '#15616d',
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans"', 'sans-serif'],
+                        serif: ['"Noto Serif"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner-border {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            animation: spin 0.75s linear infinite;
+        }
+        .diff-highlight {
+            background-color: #FEFCE8;
+            padding: 1px 2px;
+            border-radius: 2px;
+            border-bottom: 2px solid #FEF08A;
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-50 pt-5">
+    <div class="container mx-auto px-4">
+        <nav class="bg-primary rounded-lg mb-5 shadow-md">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <a class="text-white font-semibold text-xl" href="/">Tradutor Web</a>
+                    <div class="hidden md:block">
+                        <div class="flex space-x-4">
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/">Tradutor</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/models">Modelos</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/history">Histórico</a>
+                            <a class="text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/corrections">Correções</a>
+                        </div>
+                    </div>
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" class="text-white hover:bg-primaryDark p-2 rounded-md">
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="mobile-menu" class="hidden md:hidden mt-2">
+                    <div class="flex flex-col space-y-2 pb-3">
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/">Tradutor</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/models">Modelos</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/history">Histórico</a>
+                        <a class="text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/corrections">Correções</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-primary">Correções de Traduções</h1>
+                <p class="text-gray-600 mt-2">Contribuições e melhorias nas traduções</p>
+            </div>
+
+            <div class="mb-6 text-center">
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button type="button" id="btn-local" class="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 focus:z-10 focus:bg-primary focus:text-white active">
+                        Correções locais
+                    </button>
+                    <button type="button" id="btn-server" class="px-4 py-2 text-sm font-medium bg-white border border-gray-200 rounded-r-lg hover:bg-gray-100 focus:z-10 focus:bg-primary focus:text-white">
+                        Correções do servidor
+                    </button>
+                </div>
+            </div>
+
+            <div id="stats-container" class="mb-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <div class="text-xl font-bold text-blue-700 mb-1" id="total-corrections">0</div>
+                        <div class="text-sm text-blue-500">Total de correções</div>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <div class="text-xl font-bold text-green-700 mb-1" id="models-count">0</div>
+                        <div class="text-sm text-green-500">Modelos aprimorados</div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                        <div class="text-xl font-bold text-purple-700 mb-1" id="langs-count">0</div>
+                        <div class="text-sm text-purple-500">Pares de idiomas</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="filters-container" class="mb-6 hidden">
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <select id="model-filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                        <option value="">Todos os modelos</option>
+                    </select>
+                    <select id="lang-filter" class="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                        <option value="">Todos os idiomas</option>
+                    </select>
+                    <button id="apply-filters" class="bg-primary hover:bg-primaryDark text-white px-4 py-2 rounded-md text-sm">
+                        Aplicar filtros
+                    </button>
+                    <button id="clear-filters" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm">
+                        Limpar filtros
+                    </button>
+                </div>
+            </div>
+            
+            <div id="corrections-container">
+                <div class="text-center py-8">
+                    <div class="spinner-border text-primary mx-auto mb-2"></div>
+                    <p>Carregando correções...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/corrections.js') }}"></script>
+    <script>
+        // Menu mobile toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
+            const btnLocal = document.getElementById('btn-local');
+            const btnServer = document.getElementById('btn-server');
+            const modelFilter = document.getElementById('model-filter');
+            const langFilter = document.getElementById('lang-filter');
+            const applyFiltersBtn = document.getElementById('apply-filters');
+            const clearFiltersBtn = document.getElementById('clear-filters');
+            
+            let currentSource = 'local'; // 'local' ou 'server'
+            let currentFilters = {};
+            
+            // Carregar correções locais por padrão
+            loadLocalCorrections();
+            
+            // Alternar entre correções locais e do servidor
+            btnLocal.addEventListener('click', function() {
+                btnLocal.classList.add('bg-primary', 'text-white');
+                btnLocal.classList.remove('bg-white', 'text-gray-700');
+                btnServer.classList.add('bg-white', 'text-gray-700');
+                btnServer.classList.remove('bg-primary', 'text-white');
+                currentSource = 'local';
+                loadLocalCorrections();
+            });
+            
+            btnServer.addEventListener('click', function() {
+                btnServer.classList.add('bg-primary', 'text-white');
+                btnServer.classList.remove('bg-white', 'text-gray-700');
+                btnLocal.classList.add('bg-white', 'text-gray-700');
+                btnLocal.classList.remove('bg-primary', 'text-white');
+                currentSource = 'server';
+                loadServerCorrections(currentFilters);
+            });
+            
+            // Aplicar filtros
+            applyFiltersBtn.addEventListener('click', function() {
+                const modelId = modelFilter.value;
+                const langPair = langFilter.value;
+                
+                // Extrair os idiomas de origem e destino se houver seleção
+                let sourceLang = '';
+                let targetLang = '';
+                if (langPair) {
+                    const parts = langPair.split('→');
+                    if (parts.length >= 2) {
+                        sourceLang = parts[0].trim();
+                        targetLang = parts[1].trim();
+                    }
+                }
+                
+                currentFilters = {
+                    modelId: modelId,
+                    sourceLanguage: sourceLang,
+                    targetLanguage: targetLang
+                };
+                
+                if (currentSource === 'local') {
+                    loadLocalCorrections(currentFilters);
+                } else {
+                    loadServerCorrections(currentFilters);
+                }
+            });
+            
+            // Limpar filtros
+            clearFiltersBtn.addEventListener('click', function() {
+                modelFilter.value = '';
+                langFilter.value = '';
+                currentFilters = {};
+                
+                if (currentSource === 'local') {
+                    loadLocalCorrections();
+                } else {
+                    loadServerCorrections();
+                }
+            });
+        });
+        
+        // Carregar correções armazenadas localmente
+        function loadLocalCorrections(filters = {}) {
+            let correctionsData = getAllCorrections();
+            
+            // Aplicar filtros, se houver
+            if (filters.modelId) {
+                correctionsData = correctionsData.filter(item => item.modelId === filters.modelId);
+            }
+            
+            if (filters.sourceLanguage) {
+                correctionsData = correctionsData.filter(item => item.sourceLang === filters.sourceLanguage);
+            }
+            
+            if (filters.targetLanguage) {
+                correctionsData = correctionsData.filter(item => item.targetLang === filters.targetLanguage);
+            }
+            
+            // Gerar estatísticas
+            const stats = calculateStats(correctionsData);
+            
+            // Exibir as correções e estatísticas
+            displayCorrections(correctionsData, 'locais');
+            displayStats(stats);
+            populateFilters(stats);
+        }
+        
+        // Calcular estatísticas a partir dos dados
+        function calculateStats(corrections) {
+            const stats = {
+                total: corrections.length,
+                models: {},
+                languages: {}
+            };
+            
+            for (const correction of corrections) {
+                // Estatísticas por modelo
+                const modelId = correction.modelId || 'desconhecido';
+                if (!stats.models[modelId]) {
+                    stats.models[modelId] = 0;
+                }
+                stats.models[modelId]++;
+                
+                // Estatísticas por idioma
+                const langPair = `${correction.sourceLang || '?'} → ${correction.targetLang || '?'}`;
+                if (!stats.languages[langPair]) {
+                    stats.languages[langPair] = 0;
+                }
+                stats.languages[langPair]++;
+            }
+            
+            return stats;
+        }
+        
+        // Carregar correções do servidor
+        function loadServerCorrections(filters = {}) {
+            const container = document.getElementById('corrections-container');
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="spinner-border text-primary mx-auto mb-2"></div>
+                    <p>Carregando correções do servidor...</p>
+                </div>
+            `;
+            
+            // Construir a URL com filtros, se houver
+            let url = '/api/corrections';
+            const params = new URLSearchParams();
+            
+            if (filters.modelId) {
+                params.append('model_id', filters.modelId);
+            }
+            
+            if (filters.sourceLanguage) {
+                params.append('source_lang', filters.sourceLanguage);
+            }
+            
+            if (filters.targetLanguage) {
+                params.append('target_lang', filters.targetLanguage);
+            }
+            
+            const queryString = params.toString();
+            if (queryString) {
+                url = `${url}?${queryString}`;
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.corrections) {
+                        displayCorrections(data.corrections, 'do servidor');
+                        
+                        // Exibir estatísticas se disponíveis
+                        if (data.stats) {
+                            displayStats(data.stats);
+                            populateFilters(data.stats);
+                        }
+                    } else {
+                        displayError("Não foi possível carregar as correções do servidor.");
+                    }
+                })
+                .catch(error => {
+                    displayError(`Erro ao carregar correções: ${error.message}`);
+                });
+        }
+        
+        // Exibir estatísticas
+        function displayStats(stats) {
+            document.getElementById('stats-container').classList.remove('hidden');
+            document.getElementById('filters-container').classList.remove('hidden');
+            
+            document.getElementById('total-corrections').textContent = stats.total;
+            document.getElementById('models-count').textContent = Object.keys(stats.models).length;
+            document.getElementById('langs-count').textContent = Object.keys(stats.languages).length;
+        }
+        
+        // Preencher filtros com os dados das estatísticas
+        function populateFilters(stats) {
+            const modelFilter = document.getElementById('model-filter');
+            const langFilter = document.getElementById('lang-filter');
+            
+            // Limpar opções existentes, exceto a primeira (que é "Todos os modelos/idiomas")
+            while (modelFilter.options.length > 1) {
+                modelFilter.remove(1);
+            }
+            
+            while (langFilter.options.length > 1) {
+                langFilter.remove(1);
+            }
+            
+            // Adicionar modelos
+            for (const [model, count] of Object.entries(stats.models)) {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = `${model} (${count})`;
+                modelFilter.appendChild(option);
+            }
+            
+            // Adicionar idiomas
+            for (const [lang, count] of Object.entries(stats.languages)) {
+                const option = document.createElement('option');
+                option.value = lang;
+                option.textContent = `${lang} (${count})`;
+                langFilter.appendChild(option);
+            }
+        }
+        
+        // Exibir correções na página
+        function displayCorrections(correctionsData, source) {
+            const container = document.getElementById('corrections-container');
+            
+            if (!correctionsData || correctionsData.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fas fa-spell-check text-gray-400 text-5xl mb-4"></i>
+                        <h4 class="text-xl font-medium text-gray-700 mb-2">Nenhuma correção encontrada</h4>
+                        <p class="text-gray-600 mb-6">As correções de tradução que você realizar aparecerão aqui.</p>
+                        <a href="/" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition-colors inline-flex items-center">
+                            <i class="fas fa-language mr-2"></i> Fazer uma tradução
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            correctionsData.forEach((item, index) => {
+                // Formatar data
+                let formattedDate = 'Data desconhecida';
+                if (item.timestamp) {
+                    const date = new Date(item.timestamp);
+                    formattedDate = date.toLocaleString('pt-BR');
+                }
+                
+                // Identificar diferenças entre as traduções
+                const diffResult = highlightDifferences(item.originalTranslation, item.correctedTranslation);
+                
+                html += `
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 mb-6 hover:shadow-md transition-shadow">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <div class="text-primary font-medium mb-2">Texto original:</div>
+                                <div class="bg-white border border-gray-200 rounded-lg p-3 mb-4 source-text">${item.sourceText || 'Não disponível'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <div class="text-primary font-medium mb-2">Tradução original:</div>
+                                <div class="bg-white border border-gray-200 rounded-lg p-3 target-text">${item.originalTranslation || 'Não disponível'}</div>
+                            </div>
+                            <div>
+                                <div class="text-primary font-medium mb-2">Correção:</div>
+                                <div class="bg-white border border-gray-200 rounded-lg p-3 target-text">${diffResult.html}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-4 gap-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-md">
+                                    <i class="fas fa-robot mr-1"></i> ${item.modelId || 'Modelo desconhecido'}
+                                </span>
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-md">
+                                    ${item.sourceLang || 'Origem'} → ${item.targetLang || 'Destino'}
+                                </span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                                <div class="text-gray-500">${formattedDate}</div>
+                                <a href="/?model=${item.modelId}&text=${encodeURIComponent(item.sourceText)}" 
+                                   class="border border-primary text-primary hover:bg-primary hover:text-white rounded px-3 py-1 text-sm transition-colors inline-flex items-center">
+                                   <i class="fas fa-redo-alt mr-1"></i> Traduzir novamente
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Exibir mensagem de erro
+        function displayError(message) {
+            const container = document.getElementById('corrections-container');
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-red-500 mb-4">
+                        <i class="fas fa-exclamation-circle text-4xl"></i>
+                    </div>
+                    <h4 class="text-xl font-medium text-red-700 mb-2">Erro</h4>
+                    <p class="text-gray-600 mb-4">${message}</p>
+                    <button onclick="location.reload()" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition-colors">
+                        Tentar novamente
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Função para destacar diferenças entre duas strings
+        function highlightDifferences(original, corrected) {
+            if (!original || !corrected) {
+                return {
+                    html: corrected || '',
+                    changesCount: 0
+                };
+            }
+            
+            // Simplificação: marcar palavras diferentes
+            const originalWords = original.split(' ');
+            const correctedWords = corrected.split(' ');
+            let resultHtml = '';
+            let changesCount = 0;
+            
+            // Se a correção for completamente diferente, mostrar apenas o texto corrigido
+            if (originalWords.length * 0.5 > correctedWords.length || 
+                correctedWords.length * 0.5 > originalWords.length) {
+                return {
+                    html: `<span class="diff-highlight">${corrected}</span>`,
+                    changesCount: 1
+                };
+            }
+            
+            // Comparação palavra por palavra
+            const maxLength = Math.max(originalWords.length, correctedWords.length);
+            
+            for (let i = 0; i < maxLength; i++) {
+                if (i >= correctedWords.length) {
+                    // Palavras removidas no final
+                    changesCount++;
+                    continue;
+                }
+                
+                if (i >= originalWords.length) {
+                    // Palavras adicionadas no final
+                    resultHtml += ` <span class="diff-highlight">${correctedWords[i]}</span>`;
+                    changesCount++;
+                    continue;
+                }
+                
+                if (originalWords[i] !== correctedWords[i]) {
+                    // Palavra alterada
+                    resultHtml += ` <span class="diff-highlight">${correctedWords[i]}</span>`;
+                    changesCount++;
+                } else {
+                    // Palavra mantida
+                    resultHtml += ` ${correctedWords[i]}`;
+                }
+            }
+            
+            return {
+                html: resultHtml.trim(),
+                changesCount
+            };
+        }
+    </script>
+</body>
+</html>

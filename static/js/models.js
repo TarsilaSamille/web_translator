@@ -17,24 +17,23 @@ function checkModelStatus(modelId) {
 function loadModel(modelId) {
     document.getElementById(`load-${modelId}`).disabled = true;
     document.getElementById(`status-${modelId}`).innerHTML = 
-        '<div class="spinner-border spinner-border-sm text-primary" role="status">' +
-        '<span class="visually-hidden">Carregando...</span></div> Carregando modelo...';
+        '<div class="flex items-center text-blue-600"><div class="spinner-border mr-2"></div> Carregando modelo...</div>';
 
     fetch(`/api/models/${modelId}/load`, { method: 'POST' })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 document.getElementById(`status-${modelId}`).innerHTML = 
-                    '<span class="text-success"><i class="fas fa-check-circle"></i> Modelo carregado!</span>';
+                    '<span class="text-green-600 flex items-center"><i class="fas fa-check-circle mr-1"></i> Modelo carregado!</span>';
             } else {
                 document.getElementById(`status-${modelId}`).innerHTML = 
-                    `<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro: ${data.error}</span>`;
+                    `<span class="text-red-600 flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Erro: ${data.error}</span>`;
                 document.getElementById(`load-${modelId}`).disabled = false;
             }
         })
         .catch(error => {
             document.getElementById(`status-${modelId}`).innerHTML = 
-                `<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro de conexão</span>`;
+                `<span class="text-red-600 flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Erro de conexão</span>`;
             document.getElementById(`load-${modelId}`).disabled = false;
         });
 }
@@ -43,26 +42,25 @@ function loadModel(modelId) {
 function unloadModel(modelId) {
     document.getElementById(`unload-${modelId}`).disabled = true;
     document.getElementById(`status-${modelId}`).innerHTML = 
-        '<div class="spinner-border spinner-border-sm text-primary" role="status">' +
-        '<span class="visually-hidden">Descarregando...</span></div> Descarregando modelo...';
+        '<div class="flex items-center text-blue-600"><div class="spinner-border mr-2"></div> Descarregando modelo...</div>';
 
     fetch(`/api/models/${modelId}/unload`, { method: 'POST' })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 document.getElementById(`status-${modelId}`).innerHTML = 
-                    '<span class="text-secondary"><i class="fas fa-info-circle"></i> Modelo descarregado</span>';
+                    '<span class="text-gray-600 flex items-center"><i class="fas fa-info-circle mr-1"></i> Modelo descarregado</span>';
                 document.getElementById(`load-${modelId}`).disabled = false;
                 document.getElementById(`unload-${modelId}`).disabled = true;
             } else {
                 document.getElementById(`status-${modelId}`).innerHTML = 
-                    `<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro: ${data.error}</span>`;
+                    `<span class="text-red-600 flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Erro: ${data.error}</span>`;
                 document.getElementById(`unload-${modelId}`).disabled = false;
             }
         })
         .catch(error => {
             document.getElementById(`status-${modelId}`).innerHTML = 
-                `<span class="text-danger"><i class="fas fa-exclamation-circle"></i> Erro de conexão</span>`;
+                `<span class="text-red-600 flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Erro de conexão</span>`;
             document.getElementById(`unload-${modelId}`).disabled = false;
         });
 }
@@ -83,13 +81,14 @@ function downloadModel() {
     
     // Mostrar status de download
     const downloadStatus = document.getElementById('download-status');
-    downloadStatus.classList.remove('d-none');
-    downloadStatus.classList.add('alert-info');
+    downloadStatus.classList.remove('hidden');
+    downloadStatus.classList.add('bg-blue-50');
+    downloadStatus.classList.add('text-blue-700');
+    downloadStatus.classList.add('border');
+    downloadStatus.classList.add('border-blue-200');
     downloadStatus.innerHTML = `
-        <div class="d-flex align-items-center">
-            <div class="spinner-border spinner-border-sm me-2" role="status">
-                <span class="visually-hidden">Baixando...</span>
-            </div>
+        <div class="flex items-center">
+            <div class="spinner-border mr-2" role="status"></div>
             <div>Baixando modelo ${username}/${repo}... Este processo pode levar alguns minutos.</div>
         </div>
     `;
@@ -110,34 +109,34 @@ function downloadModel() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            downloadStatus.classList.remove('alert-info');
-            downloadStatus.classList.add('alert-success');
+            downloadStatus.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-200');
+            downloadStatus.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
             downloadStatus.innerHTML = `
-                <div>
-                    <i class="fas fa-check-circle"></i> 
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i> 
                     Modelo baixado com sucesso! 
-                    <button class="btn btn-sm btn-primary ms-2" onclick="fetchModels()">
-                        <i class="fas fa-sync"></i> Atualizar Lista
+                    <button class="bg-primary hover:bg-primaryDark text-white text-sm py-1 px-3 rounded transition-colors flex items-center ml-4" onclick="fetchModels()">
+                        <i class="fas fa-sync mr-1"></i> Atualizar Lista
                     </button>
                 </div>
             `;
         } else {
-            downloadStatus.classList.remove('alert-info');
-            downloadStatus.classList.add('alert-danger');
+            downloadStatus.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-200');
+            downloadStatus.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
             downloadStatus.innerHTML = `
-                <div>
-                    <i class="fas fa-exclamation-circle"></i> 
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i> 
                     Erro ao baixar modelo: ${data.error}
                 </div>
             `;
         }
     })
     .catch(error => {
-        downloadStatus.classList.remove('alert-info');
-        downloadStatus.classList.add('alert-danger');
+        downloadStatus.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-200');
+        downloadStatus.classList.add('bg-red-50', 'text-red-700', 'border-red-200');
         downloadStatus.innerHTML = `
-            <div>
-                <i class="fas fa-exclamation-circle"></i> 
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i> 
                 Erro de conexão: ${error.toString()}
             </div>
         `;

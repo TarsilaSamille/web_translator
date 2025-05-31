@@ -1,135 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Histórico de Traduções - Tradutor Web</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#001524',
+                        primaryDark: '#15616d',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-            padding-top: 20px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            color: #4285F4;
-            font-weight: 600;
-        }
-        .history-card {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid #dee2e6;
-        }
-        .history-lang {
-            font-weight: 500;
-            color: #4285F4;
-            margin-bottom: 10px;
-        }
-        .history-text {
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 5px;
-            border: 1px solid #e9ecef;
-            margin-bottom: 10px;
-        }
-        .history-date {
-            font-size: 0.85rem;
-            color: #6c757d;
-            text-align: right;
-        }
-        .history-model {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-        .btn-translate-again {
-            font-size: 0.9rem;
-        }
-        .navbar {
-            background-color: #4285F4;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        .navbar-brand {
-            color: white;
-            font-weight: 600;
-        }
-        .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-        }
-        .nav-link:hover {
-            color: white;
-        }
-        .empty-history {
-            text-align: center;
-            padding: 50px 20px;
-            color: #6c757d;
-        }
-        .empty-history i {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            opacity: 0.6;
+        .spinner-border {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            animation: spin 0.75s linear infinite;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">Tradutor Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Tradutor</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/models">Modelos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="/history">Histórico</a>
-                        </li>
-                    </ul>
+<body class="font-sans bg-gray-50 pt-5">
+    <div class="container mx-auto px-4">
+        <nav class="bg-primary rounded-lg mb-5 shadow-md">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <a class="text-white font-semibold text-xl" href="/">Tradutor Web</a>
+                    <div class="hidden md:block">
+                        <div class="flex space-x-4">
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/">Tradutor</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/models">Modelos</a>
+                            <a class="text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/history">Histórico</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/corrections">Correções</a>
+                        </div>
+                    </div>
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" class="text-white hover:bg-primaryDark p-2 rounded-md">
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="mobile-menu" class="hidden md:hidden mt-2">
+                    <div class="flex flex-col space-y-2 pb-3">
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/">Tradutor</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/models">Modelos</a>
+                        <a class="text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/history">Histórico</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/corrections">Correções</a>
+                    </div>
                 </div>
             </div>
         </nav>
         
-        <div class="header">
-            <h1>Histórico de Traduções</h1>
-            <p>Suas traduções recentes</p>
-        </div>
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-primary">Histórico de Traduções</h1>
+                <p class="text-gray-600 mt-2">Suas traduções recentes</p>
+            </div>
 
         <div id="history-container">
-            <div class="text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Carregando...</span>
-                </div>
+            <div class="text-center py-8">
+                <div class="spinner-border text-primary mx-auto mb-2"></div>
                 <p>Carregando histórico...</p>
             </div>
         </div>
     </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
+        // Menu mobile toggle
         document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            
             loadTranslationHistory();
         });
 
@@ -139,11 +109,13 @@
             
             if (historyData.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-history">
-                        <i class="fas fa-history"></i>
-                        <h4>Nenhuma tradução encontrada</h4>
-                        <p>As traduções que você realizar aparecerão aqui.</p>
-                        <a href="/" class="btn btn-primary mt-3">Fazer uma tradução</a>
+                    <div class="text-center py-12">
+                        <i class="fas fa-history text-gray-400 text-5xl mb-4"></i>
+                        <h4 class="text-xl font-medium text-gray-700 mb-2">Nenhuma tradução encontrada</h4>
+                        <p class="text-gray-600 mb-6">As traduções que você realizar aparecerão aqui.</p>
+                        <a href="/" class="bg-primary hover:bg-primaryDark text-white py-2 px-6 rounded-lg transition-colors inline-flex items-center">
+                            <i class="fas fa-language mr-2"></i> Fazer uma tradução
+                        </a>
                     </div>
                 `;
                 return;
@@ -156,27 +128,27 @@
                 const formattedDate = date.toLocaleString('pt-BR');
                 
                 html += `
-                    <div class="history-card">
-                        <div class="history-lang">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-5 mb-4 hover:shadow-md transition-shadow">
+                        <div class="text-primary font-medium mb-3">
                             ${item.sourceLang || 'Idioma de origem'} → ${item.targetLang || 'Idioma de destino'}
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="history-text">${item.sourceText}</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <div class="bg-white border border-gray-200 rounded-lg p-3">${item.sourceText}</div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="history-text">${item.translatedText}</div>
+                            <div>
+                                <div class="bg-white border border-gray-200 rounded-lg p-3">${item.translatedText}</div>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <div class="history-model">
-                                <small><i class="fas fa-robot me-1"></i> ${item.modelId}</small>
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 gap-2">
+                            <div class="text-gray-500 text-sm">
+                                <i class="fas fa-robot mr-1"></i> ${item.modelId}
                             </div>
-                            <div class="d-flex gap-2 align-items-center">
-                                <div class="history-date me-2">${formattedDate}</div>
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                                <div class="text-gray-500 text-sm mr-2">${formattedDate}</div>
                                 <a href="/?model=${item.modelId}&text=${encodeURIComponent(item.sourceText)}" 
-                                   class="btn btn-sm btn-outline-primary btn-translate-again">
-                                   <i class="fas fa-redo-alt"></i> Traduzir novamente
+                                   class="border border-primary text-primary hover:bg-primary hover:text-white rounded px-3 py-1 text-sm transition-colors inline-flex items-center">
+                                   <i class="fas fa-redo-alt mr-1"></i> Traduzir novamente
                                 </a>
                             </div>
                         </div>

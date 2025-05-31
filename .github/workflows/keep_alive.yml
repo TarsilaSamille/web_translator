@@ -1,0 +1,17 @@
+name: Manter Servidor Ativo
+
+on:
+  schedule:
+    # A cada 25 segundos não é possível em GitHub Actions, então usamos a frequência mínima de 5 minutos
+    - cron: '*/5 * * * *'  # A cada 5 minutos
+  workflow_dispatch:  # Permite acionamento manual
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Ping servidor para mantê-lo ativo
+      run: |
+        echo "Iniciando pings para manter o servidor ativo"
+        curl -s -o /dev/null -w "Ping %{http_code}\n" https://web-translator.onrender.com/
+        curl -s -o /dev/null -w "Ping API %{http_code}\n" https://web-translator.onrender.com/api/models

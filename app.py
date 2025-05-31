@@ -4,6 +4,7 @@
 
 import os
 import json
+import datetime
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from inference import Translator
@@ -11,6 +12,33 @@ import glob
 
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas as rotas
+
+# Diretório para armazenar as correções
+CORRECTIONS_DIR = os.path.join(os.path.dirname(__file__), "corrections")
+
+def find_correction(text, model_id):
+    """Encontra uma correção para um texto e modelo específicos"""
+    # Certificar-se de que o diretório de correções existe
+    os.makedirs(CORRECTIONS_DIR, exist_ok=True)
+    
+    # Normalizar o texto para comparação
+    text = text.strip()
+    
+    # Procurar em todos os arquivos de correção
+    for filename in os.listdir(CORRECTIONS_DIR):
+        if filename.endswith('.json'):
+            filepath = os.path.join(CORRECTIONS_DIR, filename)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    correction = json.load(f)
+                    
+                    # Verificar se a correção se aplica
+                    if correction.get('modelId') == model_id and correction.get('sourceText', '').strip() == text:
+                        return correction
+            except Exception as e:
+                print(f"Erro ao ler correção {filepath}: {e}")
+    
+    return None
 
 # Dicionário para armazenar tradutores carregados
 loaded_translators = {}
@@ -146,6 +174,11 @@ def models_page():
 def history_page():
     """Página de histórico de traduções"""
     return render_template('history.html')
+    
+@app.route('/corrections')
+def corrections_page():
+    """Página de correções de traduções"""
+    return render_template('corrections.html')
 
 @app.route('/api/models', methods=['GET'])
 def api_models():
@@ -288,6 +321,20 @@ def api_translate():
     
     text = data['text']
     model_id = data['model']
+    use_corrections = data.get('use_corrections', True)  # Por padrão, usa correções se disponíveis
+    
+    # Verificar primeiro se existe uma correção para este texto e modelo
+    if use_corrections:
+        correction = find_correction(text, model_id)
+        if correction:
+            return jsonify({
+                'success': True,
+                'translated_text': correction['correctedTranslation'],
+                'source_language': correction.get('sourceLang', 'desconhecido'),
+                'target_language': correction.get('targetLang', 'desconhecido'),
+                'from_correction': True,
+                'original_translation': correction.get('originalTranslation', '')
+            })
     
     # Obter ou carregar o tradutor
     try:
@@ -304,7 +351,8 @@ def api_translate():
             'success': True,
             'translated_text': translated_text,
             'source_language': translator.source_language,
-            'target_language': translator.target_language
+            'target_language': translator.target_language,
+            'from_correction': False
         })
     except Exception as e:
         print(f"Erro ao traduzir com modelo {model_id}: {e}")
@@ -354,14 +402,181 @@ def fallback_translation(text, model_id):
         'fallback': True
     })
 
+@app.route('/api/corrections', methods=['POST'])
+def save_correction():
+    """Salva uma correção de tradução"""
+    data = request.json
+    
+    if not data or 'sourceText' not in data or 'correctedTranslation' not in data:
+        return jsonify({
+            'success': False,
+            'error': 'Parâmetros inválidos. É necessário fornecer "sourceText" e "correctedTranslation".'
+        }), 400
+    
+    # Criar uma estrutura para a correção
+    correction = {
+        'sourceText': data['sourceText'],
+        'originalTranslation': data.get('originalTranslation', ''),
+        'correctedTranslation': data['correctedTranslation'],
+        'modelId': data.get('modelId', ''),
+        'sourceLang': data.get('sourceLang', ''),
+        'targetLang': data.get('targetLang', ''),
+        'timestamp': datetime.datetime.now().isoformat()
+    }
+    
+    # Certificar-se de que o diretório de correções existe
+    os.makedirs(CORRECTIONS_DIR, exist_ok=True)
+    
+    # Criar um nome de arquivo baseado no timestamp
+    filename = f"{correction['timestamp'].replace(':', '-').replace('.', '-')}.json"
+    filepath = os.path.join(CORRECTIONS_DIR, filename)
+    
+    try:
+        # Salvar a correção no arquivo
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(correction, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Correção salva com sucesso',
+            'correction': correction
+        })
+    except Exception as e:
+        print(f"Erro ao salvar correção: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Erro ao salvar correção: {str(e)}'
+        }), 500
+
+@app.route('/api/corrections', methods=['GET'])
+def get_corrections():
+    """Obtém todas as correções salvas"""
+    try:
+        # Certificar-se de que o diretório de correções existe
+        os.makedirs(CORRECTIONS_DIR, exist_ok=True)
+        
+        # Verificar se há filtros
+        model_id = request.args.get('model_id')
+        source_lang = request.args.get('source_lang')
+        target_lang = request.args.get('target_lang')
+        since_time = request.args.get('since')  # Timestamp ISO para filtrar por data
+        
+        # Obter todos os arquivos de correção
+        corrections = []
+        for filename in os.listdir(CORRECTIONS_DIR):
+            if filename.endswith('.json'):
+                filepath = os.path.join(CORRECTIONS_DIR, filename)
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        correction = json.load(f)
+                        
+                        # Adicionar ID para facilitar rastreamento
+                        if 'id' not in correction:
+                            correction['id'] = os.path.splitext(filename)[0]
+                        
+                        # Aplicar filtros, se houver
+                        if model_id and correction.get('modelId') != model_id:
+                            continue
+                        if source_lang and correction.get('sourceLang') != source_lang:
+                            continue
+                        if target_lang and correction.get('targetLang') != target_lang:
+                            continue
+                        # Filtrar por timestamp, se fornecido
+                        if since_time and correction.get('timestamp', '') <= since_time:
+                            continue
+                            
+                        corrections.append(correction)
+                except Exception as e:
+                    print(f"Erro ao ler correção {filepath}: {e}")
+        
+        # Ordenar por timestamp, do mais recente para o mais antigo
+        corrections.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+        
+        # Obter estatísticas das correções
+        stats = {
+            'total': len(corrections),
+            'models': {},
+            'languages': {}
+        }
+        
+        for correction in corrections:
+            # Estatísticas por modelo
+            model_id = correction.get('modelId', 'desconhecido')
+            if model_id not in stats['models']:
+                stats['models'][model_id] = 0
+            stats['models'][model_id] += 1
+            
+            # Estatísticas por idioma
+            lang_pair = f"{correction.get('sourceLang', '?')} → {correction.get('targetLang', '?')}"
+            if lang_pair not in stats['languages']:
+                stats['languages'][lang_pair] = 0
+            stats['languages'][lang_pair] += 1
+        
+        return jsonify({
+            'success': True,
+            'corrections': corrections,
+            'stats': stats
+        })
+    except Exception as e:
+        print(f"Erro ao obter correções: {e}")
+        return jsonify({
+            'success': False,
+            'error': f'Erro ao obter correções: {str(e)}'
+        }), 500
+
+import threading
+import time
+from keep_alive import ping_server
+
+# Variável global para controlar o thread de auto-ping
+keep_alive_thread = None
+
+# Registrar o tempo de início do aplicativo
+app.start_time = datetime.datetime.now()
+
+@app.route('/api/status', methods=['GET'])
+def api_status():
+    """Endpoint para verificar o status do serviço"""
+    uptime = datetime.datetime.now() - app.start_time
+    
+    return jsonify({
+        'status': 'online',
+        'time': datetime.datetime.now().isoformat(),
+        'uptime_seconds': uptime.total_seconds(),
+        'uptime_human': str(uptime).split('.')[0],  # Remove microssegundos
+        'models_loaded': len(loaded_translators),
+        'auto_ping': keep_alive_thread is not None and keep_alive_thread.is_alive(),
+        'server': 'Render.com' if os.environ.get('RENDER') else 'Local'
+    })
+
+def start_auto_ping():
+    """Inicia um thread para fazer auto-ping e manter o servidor ativo"""
+    def run_ping_loop():
+        print("🔄 Iniciando thread de auto-ping para evitar inatividade")
+        while True:
+            try:
+                # Usar o endpoint de status para ping interno
+                ping_server("http://localhost:5000/api/status")
+                time.sleep(25)  # Intervalo de 25 segundos (menor que o limite de 30s)
+            except Exception as e:
+                print(f"Erro no auto-ping: {e}")
+                time.sleep(5)  # Em caso de erro, tenta novamente após 5 segundos
+    
+    global keep_alive_thread
+    keep_alive_thread = threading.Thread(target=run_ping_loop, daemon=True)
+    keep_alive_thread.start()
+    print("✅ Thread de auto-ping iniciada com sucesso!")
+
 if __name__ == '__main__':
     # Certificar-se de que os diretórios necessários existam
     base_dir = os.path.dirname(__file__)
     templates_dir = os.path.join(base_dir, "templates")
     models_dir = os.path.join(base_dir, "models")
+    corrections_dir = os.path.join(base_dir, "corrections")
     
     os.makedirs(templates_dir, exist_ok=True)
     os.makedirs(models_dir, exist_ok=True)
+    os.makedirs(corrections_dir, exist_ok=True)
     
     print(f"Iniciando servidor Tradutor Web...")
     print(f"Diretório de modelos: {models_dir}")
@@ -372,6 +587,18 @@ if __name__ == '__main__':
     
     for model in models:
         print(f" - {model['display_name']} ({model['id']})")
+    
+    # Iniciar thread de auto-ping se estiver no ambiente de produção (Render)
+    is_render = (os.environ.get('RENDER') == 'true' or 
+                 os.environ.get('RUNNING_ON_RENDER') or
+                 os.environ.get('IS_RENDER') or
+                 'render.com' in os.environ.get('HOST', '') or
+                 'onrender.com' in os.environ.get('HOSTNAME', ''))
+    
+    # Também pode ser ativado manualmente se necessário
+    if is_render or os.environ.get('ENABLE_AUTO_PING') == 'true':
+        print("🔄 Ambiente de produção detectado, ativando auto-ping...")
+        start_auto_ping()
     
     # Iniciar o servidor Flask
     app.run(debug=True, host='0.0.0.0', port=5000)
