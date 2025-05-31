@@ -33,59 +33,119 @@ class Translator:
         self.max_target_len = 0
 
     def load_model(self):
-        # Carregar modelo
-        print(f"Carregando modelo de: {self.model_path}")
-        model_file = os.path.join(self.model_path, "model.keras")
-        
-        # Verificar se o arquivo existe
-        if not os.path.exists(model_file):
-            raise FileNotFoundError(f"O arquivo do modelo não foi encontrado em: {model_file}")
+        try:
+            # Carregar modelo
+            print(f"[DEBUG] Iniciando carregamento do modelo de: {self.model_path}")
+            print(f"[DEBUG] Diretório do modelo existe: {os.path.exists(self.model_path)}")
+            print(f"[DEBUG] Conteúdo do diretório do modelo: {os.listdir(self.model_path)}")
             
-        self.model = load_model(model_file)
-        
-        # Carregar configuração
-        config_file = os.path.join(self.model_path, "config.json")
-        if not os.path.exists(config_file):
-            raise FileNotFoundError(f"O arquivo de configuração não foi encontrado em: {config_file}")
+            model_file = os.path.join(self.model_path, "model.keras")
             
-        with open(config_file, 'r') as f:
-            self.config = json.load(f)
-        
-        # Extrair informações do config
-        self.max_source_len = self.config.get("max_source_len", 0)
-        self.max_target_len = self.config.get("max_target_len", 0)
-        self.source_language = self.config.get("source_language", "")
-        self.target_language = self.config.get("target_language", "")
-        
-        # Carregar tokenizadores
-        source_tokenizer_file = os.path.join(self.model_path, "source_tokenizer.json")
-        target_tokenizer_file = os.path.join(self.model_path, "target_tokenizer.json")
-        
-        # Verificar se os arquivos de tokenizador existem
-        if not os.path.exists(source_tokenizer_file):
-            raise FileNotFoundError(f"O arquivo do tokenizador de origem não foi encontrado em: {source_tokenizer_file}")
+            # Verificar se o arquivo existe
+            if not os.path.exists(model_file):
+                print(f"[DEBUG] ERRO: Arquivo do modelo não encontrado em: {model_file}")
+                raise FileNotFoundError(f"O arquivo do modelo não foi encontrado em: {model_file}")
+            else:
+                print(f"[DEBUG] Arquivo do modelo encontrado: {model_file} (tamanho: {os.path.getsize(model_file)} bytes)")
             
-        if not os.path.exists(target_tokenizer_file):
-            raise FileNotFoundError(f"O arquivo do tokenizador de destino não foi encontrado em: {target_tokenizer_file}")
-        
-        # Carregar e corrigir tokenizadores (se necessário)
-        with open(source_tokenizer_file, 'r') as f:
-            source_tokenizer_data = json.load(f)
-            # Verificar se o JSON está dentro de outro JSON (correção para casos especiais)
-            if isinstance(source_tokenizer_data, str):
-                source_tokenizer_data = json.loads(source_tokenizer_data)
-            self.source_tokenizer = tokenizer_from_json(json.dumps(source_tokenizer_data))
-        
-        with open(target_tokenizer_file, 'r') as f:
-            target_tokenizer_data = json.load(f)
-            # Verificar se o JSON está dentro de outro JSON (correção para casos especiais)
-            if isinstance(target_tokenizer_data, str):
-                target_tokenizer_data = json.loads(target_tokenizer_data)
-            self.target_tokenizer = tokenizer_from_json(json.dumps(target_tokenizer_data))
-        
-        print(f"Modelo carregado com sucesso!")
-        print(f"Tradutor: {self.source_language} -> {self.target_language}")
-        return True
+            print(f"[DEBUG] Tentando carregar o modelo com Keras...")
+            try:
+                self.model = load_model(model_file)
+                print(f"[DEBUG] Modelo carregado com sucesso!")
+            except Exception as e:
+                print(f"[DEBUG] ERRO ao carregar modelo com Keras: {str(e)}")
+                raise
+            
+            # Carregar configuração
+            config_file = os.path.join(self.model_path, "config.json")
+            if not os.path.exists(config_file):
+                print(f"[DEBUG] ERRO: Arquivo de configuração não encontrado em: {config_file}")
+                raise FileNotFoundError(f"O arquivo de configuração não foi encontrado em: {config_file}")
+            else:
+                print(f"[DEBUG] Arquivo de configuração encontrado: {config_file}")
+            
+            try:
+                print(f"[DEBUG] Tentando ler arquivo de configuração...")
+                with open(config_file, 'r') as f:
+                    self.config = json.load(f)
+                print(f"[DEBUG] Configuração carregada: {self.config}")
+            except json.JSONDecodeError as e:
+                print(f"[DEBUG] ERRO ao decodificar o JSON de configuração: {str(e)}")
+                raise
+            except Exception as e:
+                print(f"[DEBUG] ERRO ao ler configuração: {str(e)}")
+                raise
+            
+            # Extrair informações do config
+            self.max_source_len = self.config.get("max_source_len", 0)
+            self.max_target_len = self.config.get("max_target_len", 0)
+            self.source_language = self.config.get("source_language", "")
+            self.target_language = self.config.get("target_language", "")
+            print(f"[DEBUG] Configuração extraída: source_len={self.max_source_len}, target_len={self.max_target_len}, source={self.source_language}, target={self.target_language}")
+            
+            # Carregar tokenizadores
+            source_tokenizer_file = os.path.join(self.model_path, "source_tokenizer.json")
+            target_tokenizer_file = os.path.join(self.model_path, "target_tokenizer.json")
+            
+            # Verificar se os arquivos de tokenizador existem
+            if not os.path.exists(source_tokenizer_file):
+                print(f"[DEBUG] ERRO: Arquivo do tokenizador de origem não encontrado em: {source_tokenizer_file}")
+                raise FileNotFoundError(f"O arquivo do tokenizador de origem não foi encontrado em: {source_tokenizer_file}")
+            else:
+                print(f"[DEBUG] Arquivo do tokenizador de origem encontrado: {source_tokenizer_file}")
+                
+            if not os.path.exists(target_tokenizer_file):
+                print(f"[DEBUG] ERRO: Arquivo do tokenizador de destino não encontrado em: {target_tokenizer_file}")
+                raise FileNotFoundError(f"O arquivo do tokenizador de destino não foi encontrado em: {target_tokenizer_file}")
+            else:
+                print(f"[DEBUG] Arquivo do tokenizador de destino encontrado: {target_tokenizer_file}")
+            
+            # Carregar e corrigir tokenizadores (se necessário)
+            try:
+                print(f"[DEBUG] Carregando tokenizador de origem...")
+                with open(source_tokenizer_file, 'r') as f:
+                    source_tokenizer_data = json.load(f)
+                    print(f"[DEBUG] Tipo de dados do tokenizador de origem: {type(source_tokenizer_data)}")
+                    # Verificar se o JSON está dentro de outro JSON (correção para casos especiais)
+                    if isinstance(source_tokenizer_data, str):
+                        print(f"[DEBUG] Convertendo tokenizador de origem de string para objeto...")
+                        source_tokenizer_data = json.loads(source_tokenizer_data)
+                    self.source_tokenizer = tokenizer_from_json(json.dumps(source_tokenizer_data))
+                    print(f"[DEBUG] Tokenizador de origem carregado com sucesso!")
+            except json.JSONDecodeError as e:
+                print(f"[DEBUG] ERRO ao decodificar o JSON do tokenizador de origem: {str(e)}")
+                raise
+            except Exception as e:
+                print(f"[DEBUG] ERRO ao carregar tokenizador de origem: {str(e)}")
+                raise
+            
+            try:
+                print(f"[DEBUG] Carregando tokenizador de destino...")
+                with open(target_tokenizer_file, 'r') as f:
+                    target_tokenizer_data = json.load(f)
+                    print(f"[DEBUG] Tipo de dados do tokenizador de destino: {type(target_tokenizer_data)}")
+                    # Verificar se o JSON está dentro de outro JSON (correção para casos especiais)
+                    if isinstance(target_tokenizer_data, str):
+                        print(f"[DEBUG] Convertendo tokenizador de destino de string para objeto...")
+                        target_tokenizer_data = json.loads(target_tokenizer_data)
+                    self.target_tokenizer = tokenizer_from_json(json.dumps(target_tokenizer_data))
+                    print(f"[DEBUG] Tokenizador de destino carregado com sucesso!")
+            except json.JSONDecodeError as e:
+                print(f"[DEBUG] ERRO ao decodificar o JSON do tokenizador de destino: {str(e)}")
+                raise
+            except Exception as e:
+                print(f"[DEBUG] ERRO ao carregar tokenizador de destino: {str(e)}")
+                raise
+            
+            print(f"[DEBUG] Modelo completamente carregado com sucesso!")
+            print(f"Tradutor: {self.source_language} -> {self.target_language}")
+            return True
+            
+        except Exception as e:
+            print(f"[DEBUG] ERRO CRÍTICO ao carregar o modelo: {str(e)}")
+            import traceback
+            print(f"[DEBUG] Traceback completo: {traceback.format_exc()}")
+            raise
 
     def translate(self, text):
         if not self.model:

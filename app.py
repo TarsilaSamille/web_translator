@@ -16,6 +16,68 @@ CORS(app)  # Habilitar CORS para todas as rotas
 # Diretório para armazenar as correções
 CORRECTIONS_DIR = os.path.join(os.path.dirname(__file__), "corrections")
 
+# Verificar estrutura da pasta de modelos no início
+def check_models_directory():
+    """Verifica e registra informações sobre a estrutura da pasta de modelos na inicialização"""
+    models_dir = os.path.join(os.path.dirname(__file__), "models")
+    
+    print("\n[DEBUG] ===== VERIFICAÇÃO DE DIRETÓRIOS DE MODELOS NA INICIALIZAÇÃO =====")
+    
+    if not os.path.exists(models_dir):
+        print(f"[DEBUG] ALERTA: Diretório de modelos não existe: {models_dir}")
+        try:
+            os.makedirs(models_dir, exist_ok=True)
+            print(f"[DEBUG] Diretório de modelos criado: {models_dir}")
+        except Exception as e:
+            print(f"[DEBUG] Erro ao criar diretório de modelos: {e}")
+        return
+    
+    print(f"[DEBUG] Diretório de modelos encontrado: {models_dir}")
+    
+    try:
+        # Listar todos os subdiretórios
+        subdirs = [os.path.join(models_dir, d) for d in os.listdir(models_dir) 
+                  if os.path.isdir(os.path.join(models_dir, d))]
+        
+        print(f"[DEBUG] Subdiretórios encontrados: {len(subdirs)}")
+        
+        for subdir in subdirs:
+            model_name = os.path.basename(subdir)
+            print(f"\n[DEBUG] Verificando modelo: {model_name}")
+            print(f"[DEBUG] Caminho completo: {subdir}")
+            
+            try:
+                files = os.listdir(subdir)
+                print(f"[DEBUG] Arquivos encontrados: {files}")
+                
+                # Verificar arquivos importantes
+                for file in ["model.keras", "config.json", "source_tokenizer.json", "target_tokenizer.json"]:
+                    file_path = os.path.join(subdir, file)
+                    if os.path.exists(file_path):
+                        size = os.path.getsize(file_path)
+                        print(f"[DEBUG] {file}: Existe, tamanho: {size} bytes")
+                    else:
+                        print(f"[DEBUG] {file}: NÃO EXISTE")
+                
+                # Se tiver config.json, exibir conteúdo
+                config_path = os.path.join(subdir, "config.json")
+                if os.path.exists(config_path):
+                    try:
+                        with open(config_path, 'r') as f:
+                            config = json.load(f)
+                            print(f"[DEBUG] Conteúdo do config.json: {config}")
+                    except Exception as e:
+                        print(f"[DEBUG] Erro ao ler config.json: {e}")
+            except Exception as e:
+                print(f"[DEBUG] Erro ao verificar modelo {model_name}: {e}")
+    except Exception as e:
+        print(f"[DEBUG] Erro ao verificar diretório de modelos: {e}")
+    
+    print("[DEBUG] ===== FIM DA VERIFICAÇÃO DE DIRETÓRIOS DE MODELOS =====\n")
+
+# Executar verificação na inicialização
+check_models_directory()
+
 def find_correction(text, model_id):
     """Encontra uma correção para um texto e modelo específicos"""
     # Certificar-se de que o diretório de correções existe
@@ -125,38 +187,77 @@ def get_available_models():
 
 def get_or_load_translator(model_id):
     """Retorna um tradutor carregado ou carrega um novo se necessário"""
+    print(f"[DEBUG] Solicitado carregamento do modelo: {model_id}")
+    
     if model_id in loaded_translators:
+        print(f"[DEBUG] Modelo {model_id} já está carregado, retornando instância existente")
         return loaded_translators[model_id]
     
     # Encontrar o modelo na lista de modelos disponíveis
+    print(f"[DEBUG] Buscando informações do modelo {model_id} na lista de modelos disponíveis")
     models = get_available_models()
+    print(f"[DEBUG] Modelos disponíveis: {[m['id'] for m in models]}")
     model_info = next((m for m in models if m["id"] == model_id), None)
     
     if not model_info:
-        print(f"Modelo {model_id} não encontrado na lista de modelos disponíveis")
+        print(f"[DEBUG] ERRO: Modelo {model_id} não encontrado na lista de modelos disponíveis")
         return None
+    else:
+        print(f"[DEBUG] Modelo {model_id} encontrado: {model_info}")
     
     # Verificar se o caminho existe
+    print(f"[DEBUG] Verificando se o caminho do modelo existe: {model_info['path']}")
     if not os.path.exists(model_info["path"]):
-        print(f"Caminho do modelo não existe: {model_info['path']}")
+        print(f"[DEBUG] ERRO: Caminho do modelo não existe: {model_info['path']}")
         return None
+    else:
+        print(f"[DEBUG] Caminho do modelo existe: {model_info['path']}")
+        print(f"[DEBUG] Conteúdo do diretório: {os.listdir(model_info['path'])}")
     
     # Verificar se os arquivos necessários existem
     required_files = ["model.keras", "config.json", "source_tokenizer.json", "target_tokenizer.json"]
+    print(f"[DEBUG] Verificando arquivos necessários: {required_files}")
+    
+    for file in required_files:
+        file_path = os.path.join(model_info["path"], file)
+        exists = os.path.exists(file_path)
+        if exists:
+            try:
+                size = os.path.getsize(file_path)
+                print(f"[DEBUG] Arquivo {file} - Existe: {exists}, Tamanho: {size} bytes")
+            except Exception as e:
+                print(f"[DEBUG] Arquivo {file} - Existe: {exists}, Erro ao obter tamanho: {e}")
+        else:
+            print(f"[DEBUG] Arquivo {file} - Existe: {exists}")
+    
     missing_files = [f for f in required_files if not os.path.exists(os.path.join(model_info["path"], f))]
     
     if missing_files:
-        print(f"Arquivos obrigatórios não encontrados para o modelo {model_id}: {', '.join(missing_files)}")
+        print(f"[DEBUG] ERRO: Arquivos obrigatórios não encontrados para o modelo {model_id}: {', '.join(missing_files)}")
         return None
+    else:
+        print(f"[DEBUG] Todos os arquivos obrigatórios encontrados para o modelo {model_id}")
     
     # Tentar carregar o tradutor
+    print(f"[DEBUG] Tentando carregar o tradutor para o modelo {model_id}...")
     try:
+        print(f"[DEBUG] Criando instância do Translator com caminho: {model_info['path']}")
         translator = Translator(model_info["path"])
-        translator.load_model()
-        loaded_translators[model_id] = translator
-        return translator
+        
+        print(f"[DEBUG] Chamando método load_model()...")
+        success = translator.load_model()
+        
+        if success:
+            print(f"[DEBUG] Modelo {model_id} carregado com sucesso!")
+            loaded_translators[model_id] = translator
+            return translator
+        else:
+            print(f"[DEBUG] ERRO: Falha ao carregar modelo {model_id} - método load_model() retornou False")
+            return None
     except Exception as e:
-        print(f"Erro ao carregar tradutor {model_id}: {e}")
+        import traceback
+        print(f"[DEBUG] ERRO: Exceção ao carregar tradutor {model_id}: {e}")
+        print(f"[DEBUG] Traceback completo: {traceback.format_exc()}")
         return None
 
 @app.route('/')
@@ -311,9 +412,11 @@ def api_download_model():
 @app.route('/api/translate', methods=['POST'])
 def api_translate():
     """Traduz o texto usando o modelo especificado"""
+    print(f"[DEBUG] ===== NOVA SOLICITAÇÃO DE TRADUÇÃO =====")
     data = request.json
     
     if not data or 'text' not in data or 'model' not in data:
+        print(f"[DEBUG] ERRO: Parâmetros inválidos: {data}")
         return jsonify({
             'success': False,
             'error': 'Parâmetros inválidos. É necessário fornecer "text" e "model".'
@@ -323,10 +426,17 @@ def api_translate():
     model_id = data['model']
     use_corrections = data.get('use_corrections', True)  # Por padrão, usa correções se disponíveis
     
+    print(f"[DEBUG] Solicitação de tradução recebida:")
+    print(f"[DEBUG] - Texto: '{text}'")
+    print(f"[DEBUG] - Modelo: {model_id}")
+    print(f"[DEBUG] - Usar correções: {use_corrections}")
+    
     # Verificar primeiro se existe uma correção para este texto e modelo
     if use_corrections:
+        print(f"[DEBUG] Verificando se existe correção para este texto e modelo...")
         correction = find_correction(text, model_id)
         if correction:
+            print(f"[DEBUG] Correção encontrada! Retornando tradução corrigida.")
             return jsonify({
                 'success': True,
                 'translated_text': correction['correctedTranslation'],
@@ -335,33 +445,65 @@ def api_translate():
                 'from_correction': True,
                 'original_translation': correction.get('originalTranslation', '')
             })
+        print(f"[DEBUG] Nenhuma correção encontrada para este texto e modelo.")
     
     # Obter ou carregar o tradutor
     try:
+        print(f"[DEBUG] Tentando obter ou carregar o tradutor para o modelo: {model_id}")
         translator = get_or_load_translator(model_id)
         
         if not translator:
+            print(f"[DEBUG] ERRO: Não foi possível carregar o tradutor para o modelo {model_id}. Usando fallback.")
+            # Verificar se o método de fallback existe
+            if 'fallback_translation' not in globals():
+                print(f"[DEBUG] ERRO: Método fallback_translation não está definido!")
+                return jsonify({
+                    'success': False,
+                    'error': f'Erro ao carregar modelo {model_id} e método de fallback não está disponível.'
+                }), 500
+                
             # Usar o método de fallback para modelos com problemas de compatibilidade
             return fallback_translation(text, model_id)
         
         # Realizar a tradução
-        translated_text = translator.translate(text)
-        
-        return jsonify({
-            'success': True,
-            'translated_text': translated_text,
-            'source_language': translator.source_language,
-            'target_language': translator.target_language,
-            'from_correction': False
-        })
+        print(f"[DEBUG] Tradutor carregado com sucesso. Realizando tradução...")
+        try:
+            translated_text = translator.translate(text)
+            print(f"[DEBUG] Tradução realizada com sucesso: '{translated_text}'")
+            
+            return jsonify({
+                'success': True,
+                'translated_text': translated_text,
+                'source_language': translator.source_language,
+                'target_language': translator.target_language,
+                'from_correction': False
+            })
+        except Exception as e:
+            print(f"[DEBUG] ERRO durante a tradução: {e}")
+            import traceback
+            print(f"[DEBUG] Traceback da tradução: {traceback.format_exc()}")
+            raise
+            
     except Exception as e:
-        print(f"Erro ao traduzir com modelo {model_id}: {e}")
+        import traceback
+        print(f"[DEBUG] ERRO ao traduzir com modelo {model_id}: {e}")
+        print(f"[DEBUG] Traceback completo: {traceback.format_exc()}")
+        
+        # Verificar se o método de fallback existe
+        if 'fallback_translation' not in globals():
+            print(f"[DEBUG] ERRO: Método fallback_translation não está definido!")
+            return jsonify({
+                'success': False,
+                'error': f'Erro ao traduzir com modelo {model_id}: {str(e)}'
+            }), 500
+            
         # Usar o método de fallback para modelos com problemas
+        print(f"[DEBUG] Tentando usar método de fallback para a tradução...")
         return fallback_translation(text, model_id)
 
 def fallback_translation(text, model_id):
     """Método de fallback para quando o modelo não pode ser carregado ou há erro na tradução"""
-    print(f"Usando tradução de fallback para o modelo {model_id}")
+    print(f"[DEBUG] Ativando tradução de fallback para o modelo {model_id}")
     
     # Simulação de tradução para demonstração
     translations = {
@@ -380,20 +522,40 @@ def fallback_translation(text, model_id):
             "Yaya kake?": "How are you?",
             "Barka da safiya": "Good morning",
             "Na gode": "Thank you"
+        },
+        "english-snejag-translator": {
+            "Hello": "Leho",
+            "World": "Dwor",
+            "Hello world": "Leho dwor",
+            "How are you?": "Woh rea uyo?",
+            "Good morning": "Dogo ginmorn",
+            "Thank you": "Knath uyo"
         }
     }
+    
+    print(f"[DEBUG] Verificando se existe tradução exata para '{text}' no fallback do modelo {model_id}")
     
     # Ver se há uma tradução exata no dicionário simulado
     if model_id in translations and text in translations[model_id]:
         translated_text = translations[model_id][text]
+        print(f"[DEBUG] Tradução exata encontrada no fallback: '{translated_text}'")
     else:
         # Simular tradução invertendo o texto (apenas para demonstração)
         translated_text = f"[Fallback] {text[::-1]}"
+        print(f"[DEBUG] Usando tradução reversa como fallback: '{translated_text}'")
     
     # Determinar o idioma de origem e destino com base no modelo
-    source_lang = "English" if model_id == "english_snejag_translator" else "Hausa"
-    target_lang = "Snejag" if model_id == "english_snejag_translator" else "English"
+    if model_id == "english_snejag_translator" or model_id == "english-snejag-translator":
+        source_lang = "English"
+        target_lang = "Snejag"
+    elif model_id == "hausa_english_translator":
+        source_lang = "Hausa"
+        target_lang = "English"
+    else:
+        source_lang = "Desconhecido"
+        target_lang = "Desconhecido"
     
+    print(f"[DEBUG] Retornando tradução de fallback: '{translated_text}' ({source_lang} → {target_lang})")
     return jsonify({
         'success': True,
         'translated_text': translated_text,
