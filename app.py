@@ -286,6 +286,24 @@ def get_or_load_translator(model_id):
         is_render = '/opt/render' in model_info['path']
         print(f"[DEBUG] Executando no ambiente Render: {is_render}")
         
+        # Tratamento especial para o modelo english-snejag-translator no Render
+        if is_render and model_id == "english-snejag-translator":
+            print(f"[DEBUG] Tratamento especial para o modelo {model_id} no Render")
+            
+            # Verificar permissões da pasta do modelo
+            try:
+                perm = oct(os.stat(model_info['path']).st_mode)[-3:]
+                print(f"[DEBUG] Permissões da pasta do modelo: {perm}")
+                
+                # Listar todos os arquivos e suas permissões
+                for file in os.listdir(model_info['path']):
+                    file_path = os.path.join(model_info['path'], file)
+                    file_perm = oct(os.stat(file_path).st_mode)[-3:]
+                    file_size = os.path.getsize(file_path)
+                    print(f"[DEBUG] Arquivo {file}: permissões={file_perm}, tamanho={file_size} bytes")
+            except Exception as e:
+                print(f"[DEBUG] Erro ao verificar permissões: {str(e)}")
+        
         # Garantir que o caminho existe no Render
         if is_render and not os.path.exists(model_info['path']):
             print(f"[DEBUG] Tentando criar diretório do modelo no Render: {model_info['path']}")
@@ -293,6 +311,27 @@ def get_or_load_translator(model_id):
                 os.makedirs(model_info['path'], exist_ok=True)
             except Exception as e:
                 print(f"[DEBUG] Erro ao criar diretório: {str(e)}")
+        
+        # Verificar os links simbólicos que podem estar incorretos no Render
+        if is_render and model_id == "english-snejag-translator":
+            print(f"[DEBUG] Verificando e corrigindo possíveis problemas de links no modelo {model_id}")
+            try:
+                # Tentar usar caminhos alternativos se necessário
+                alt_paths = [
+                    "/opt/render/project/src/models/english_snejag_translator_2",  # Tenta usando o modelo 2
+                    "/opt/render/project/src/models/english-snejag-translator_3"    # Tenta usando o modelo 3
+                ]
+                
+                for alt_path in alt_paths:
+                    if os.path.exists(alt_path):
+                        print(f"[DEBUG] Encontrado caminho alternativo para o modelo: {alt_path}")
+                        # Verificar se o modelo alternativo tem os arquivos necessários
+                        if all(os.path.exists(os.path.join(alt_path, f)) for f in ["model.keras", "config.json", "source_tokenizer.json", "target_tokenizer.json"]):
+                            print(f"[DEBUG] Usando caminho alternativo para o modelo: {alt_path}")
+                            model_info['path'] = alt_path
+                            break
+            except Exception as e:
+                print(f"[DEBUG] Erro ao tentar usar caminhos alternativos: {str(e)}")
         
         translator = Translator(model_info["path"])
         
@@ -320,7 +359,29 @@ def get_or_load_translator(model_id):
                 import keras
                 print(f"[DEBUG] Versões no Render: TensorFlow {tf.__version__}, Keras {keras.__version__}")
                 
-                # Tentar uma abordagem alternativa se possível
+                # Tentar usar um modelo alternativo se o original falhou
+                if model_id == "english-snejag-translator":
+                    print(f"[DEBUG] Tentando carregamento automático de um modelo alternativo...")
+                    
+                    # Tentar modelos alternativos
+                    for alt_model_id in ["english_snejag_translator_2", "english-snejag-translator_3"]:
+                        print(f"[DEBUG] Tentando modelo alternativo: {alt_model_id}")
+                        alt_model = next((m for m in get_available_models() if m["id"] == alt_model_id), None)
+                        
+                        if alt_model:
+                            print(f"[DEBUG] Modelo alternativo {alt_model_id} encontrado, tentando carregar...")
+                            try:
+                                alt_translator = Translator(alt_model["path"])
+                                alt_success = alt_translator.load_model()
+                                
+                                if alt_success:
+                                    print(f"[DEBUG] Modelo alternativo {alt_model_id} carregado com sucesso!")
+                                    # Guardar o tradutor alternativo sob o ID original para manter compatibilidade
+                                    loaded_translators[model_id] = alt_translator
+                                    return alt_translator
+                            except Exception as alt_e:
+                                print(f"[DEBUG] Erro ao carregar modelo alternativo {alt_model_id}: {alt_e}")
+                
                 print(f"[DEBUG] Tentando abordagem alternativa de carregamento...")
                 return None
             except Exception as render_error:
@@ -708,7 +769,7 @@ def get_corrections():
                         if model_id and correction.get('modelId') != model_id:
                             continue
                         if source_lang and correction.get('sourceLang') != source_lang:
-                            continue
+                            continue 
                         if target_lang and correction.get('targetLang') != target_lang:
                             continue
                         # Filtrar por timestamp, se fornecido
@@ -769,6 +830,9 @@ def api_status():
     """Endpoint para verificar o status do serviço"""
     uptime = datetime.datetime.now() - app.start_time
     
+    # Verificar ambiente Render específico
+    is_render = os.environ.get('RENDER') == 'true' or '/opt/render' in os.getcwd()
+    
     return jsonify({
         'status': 'online',
         'time': datetime.datetime.now().isoformat(),
@@ -776,8 +840,37 @@ def api_status():
         'uptime_human': str(uptime).split('.')[0],  # Remove microssegundos
         'models_loaded': len(loaded_translators),
         'auto_ping': keep_alive_thread is not None and keep_alive_thread.is_alive(),
-        'server': 'Render.com' if os.environ.get('RENDER') else 'Local'
+        'server': 'Render.com' if is_render else 'Local',
+        'working_directory': os.getcwd(),
+        'models_directory': os.path.join(os.path.dirname(__file__), "models")
     })
+
+@app.route('/api/debug/render', methods=['GET'])
+def render_debug():
+    """Endpoint para diagnóstico específico do ambiente Render"""
+    from render_debug import diagnose
+    
+    # Verificar se há senha na query string
+    auth_key = request.args.get('key', '')
+    if not auth_key or auth_key != 'debug-render-2025':
+        return jsonify({
+            'error': 'Acesso não autorizado. Forneça a chave de autenticação.'
+        }), 401
+    
+    # Executar diagnóstico
+    try:
+        diagnostico = diagnose()
+        return jsonify({
+            'success': True,
+            'diagnostico': diagnostico
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
 
 def start_auto_ping():
     """Inicia um thread para fazer auto-ping e manter o servidor ativo"""
