@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico do Sistema de Tradução</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/diagnostic.js') }}"></script>
+    <style>
+        .diagnostic-panel {
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .log-container {
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+
+        .log-error {
+            color: #ff6b6b;
+        }
+
+        .log-warning {
+            color: #ffd166;
+        }
+
+        .log-info {
+            color: #06d6a0;
+        }
+
+        .log-debug {
+            color: #118ab2;
+        }
+
+        .status-card {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .status-ok {
+            border-left: 5px solid #06d6a0;
+        }
+
+        .status-warning {
+            border-left: 5px solid #ffd166;
+        }
+
+        .status-error {
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .refresh-btn {
+            background-color: #118ab2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .copy-btn {
+            background-color: #06d6a0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .tab-container {
+            margin-bottom: 20px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 15px;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab-btn.active {
+            background-color: #fff;
+            border-bottom: 1px solid white;
+            position: relative;
+            bottom: -1px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 0 5px 5px 5px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .health-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .health-good {
+            background-color: #06d6a0;
+        }
+
+        .health-warning {
+            background-color: #ffd166;
+        }
+
+        .health-error {
+            background-color: #ff6b6b;
+        }
+
+        .fixed-line-height {
+            line-height: 1.5;
+        }
+
+        .terminal-command {
+            background-color: #2d2d2d;
+            color: white;
+            padding: 8px 12px;
+            font-family: monospace;
+            display: inline-block;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Diagnóstico do Sistema de Tradução</h1>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="system">Sistema</button>
+                <button class="tab-btn" data-tab="models">Modelos</button>
+                <button class="tab-btn" data-tab="logs">Logs</button>
+                <button class="tab-btn" data-tab="errors">Erros</button>
+                <button class="tab-btn" data-tab="test">Testes</button>
+                <button class="tab-btn" data-tab="tools">Ferramentas</button>
+            </div>
+
+            <!-- Tab Sistema -->
+            <div id="system" class="tab-content active">
+                <h2>Status do Sistema</h2>
+
+                <button id="refresh-system" class="refresh-btn">Atualizar Dados</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Informações do Servidor</h3>
+                    <div id="server-info">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Ambiente</h3>
+                    <div id="environment-info">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Estado dos Modelos</h3>
+                    <div id="models-status">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Tab Modelos -->
+            <div id="models" class="tab-content">
+                <h2>Informações dos Modelos</h2>
+
+                <button id="refresh-models" class="refresh-btn">Atualizar Dados</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Modelos Disponíveis</h3>
+                    <div id="available-models">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Modelos Carregados</h3>
+                    <div id="loaded-models">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Tab Logs -->
+            <div id="logs" class="tab-content">
+                <h2>Logs do Sistema</h2>
+
+                <button id="refresh-logs" class="refresh-btn">Atualizar Logs</button>
+                <button id="copy-logs" class="copy-btn">Copiar Logs</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Logs Recentes</h3>
+                    <div id="recent-logs" class="log-container">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Tab Erros -->
+            <div id="errors" class="tab-content">
+                <h2>Erros Recentes</h2>
+
+                <button id="refresh-errors" class="refresh-btn">Atualizar Erros</button>
+                <button id="copy-errors" class="copy-btn">Copiar Erros</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Erros do Sistema</h3>
+                    <div id="system-errors" class="log-container">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Erros de Carregamento de Modelos</h3>
+                    <div id="model-errors" class="log-container">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Tab Testes -->
+            <div id="test" class="tab-content">
+                <h2>Testes de Diagnóstico</h2>
+
+                <div class="diagnostic-panel">
+                    <h3>Teste de Carregamento de Modelos</h3>
+                    <select id="model-select">
+                        <option value="">Selecione um modelo para testar...</option>
+                    </select>
+                    <button id="test-model-btn" class="refresh-btn">Testar Modelo</button>
+                    <div id="test-results" class="log-container">Selecione um modelo para testar...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Teste de Tradução</h3>
+                    <select id="model-select-translation">
+                        <option value="">Selecione um modelo para tradução...</option>
+                    </select>
+                    <input type="text" id="test-text" placeholder="Digite um texto para traduzir..."
+                        style="width: 300px; padding: 5px;">
+                    <button id="test-translation-btn" class="refresh-btn">Testar Tradução</button>
+                    <div id="translation-results" class="log-container">Digite um texto para traduzir...</div>
+                </div>
+            </div>
+
+            <!-- Tab Ferramentas -->
+            <div id="tools" class="tab-content">
+                <h2>Ferramentas de Diagnóstico</h2>
+
+                <div class="diagnostic-panel">
+                    <h3>Diagnóstico Completo do Sistema</h3>
+                    <p>Execute um diagnóstico completo do sistema para identificar problemas.</p>
+                    <button id="full-diagnostic-btn" class="refresh-btn">Executar Diagnóstico Completo</button>
+                    <div id="diagnostic-results" class="log-container">Clique no botão para executar...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Comandos Úteis</h3>
+                    <p>Comandos que podem ser executados no terminal do Render para diagnóstico:</p>
+                    <div class="fixed-line-height">
+                        <p><span class="terminal-command">python render_debug.py</span> - Executa diagnóstico detalhado
+                            do ambiente</p>
+                        <p><span class="terminal-command">python test_model_load.py
+                                models/english-snejag-translator</span> - Testa carregamento do modelo específico</p>
+                        <p><span class="terminal-command">./render_restart.sh</span> - Executa diagnóstico completo e
+                            reinicia o servidor</p>
+                    </div>
+                    <p><strong>Nota:</strong> Esses comandos devem ser executados no terminal do serviço Render.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funções para trocar entre tabs
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+
+                // Remover classe active de todos os botões e conteúdos
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                // Adicionar classe active ao botão e conteúdo correspondentes
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Função para formatar logs com cores
+        function formatLogs(logText) {
+            return logText
+                .replace(/\[ERROR\]|\[ERRO\]|ERRO|\bERROR\b/gi, '<span class="log-error">$&</span>')
+                .replace(/\[WARNING\]|\[AVISO\]|AVISO|\bWARNING\b/gi, '<span class="log-warning">$&</span>')
+                .replace(/\[INFO\]|INFO/gi, '<span class="log-info">$&</span>')
+                .replace(/\[DEBUG\]|DEBUG/gi, '<span class="log-debug">$&</span>')
+                .replace(/Traceback \(most recent call last\):.*?(?=\n\n|\n[^\s])/gs, '<span class="log-error">$&</span>');
+        }
+
+        // Função para carregar informações do sistema
+        async function loadSystemInfo() {
+            try {
+                const response = await fetch('/api/diagnostic/system');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Atualizar informações do servidor
+                const serverInfo = document.getElementById('server-info');
+                serverInfo.innerHTML = `
+                    <table>
+                        <tr><td><strong>Status</strong></td><td>${data.status} <span class="health-indicator health-${data.health}"></span></td></tr>
+                        <tr><td><strong>Uptime</strong></td><td>${data.uptime_human}</td></tr>
+                        <tr><td><strong>Data/Hora</strong></td><td>${data.time}</td></tr>
+                        <tr><td><strong>Ambiente</strong></td><td>${data.environment}</td></tr>
+                        <tr><td><strong>Modelos Carregados</strong></td><td>${data.models_loaded}</td></tr>
+                        <tr><td><strong>Auto-ping</strong></td><td>${data.auto_ping ? 'Ativo' : 'Inativo'}</td></tr>
+                        <tr><td><strong>Diretório de Trabalho</strong></td><td>${data.working_directory}</td></tr>
+                        <tr><td><strong>Diretório de Modelos</strong></td><td>${data.models_directory}</td></tr>
+                    </table>
+                `;
+
+                // Atualizar informações do ambiente
+                const envInfo = document.getElementById('environment-info');
+                envInfo.innerHTML = `
+                    <table>
+                        <tr><td><strong>TensorFlow</strong></td><td>${data.versions?.tensorflow || 'N/A'}</td></tr>
+                        <tr><td><strong>Keras</strong></td><td>${data.versions?.keras || 'N/A'}</td></tr>
+                        <tr><td><strong>Python</strong></td><td>${data.versions?.python || 'N/A'}</td></tr>
+                        <tr><td><strong>Plataforma</strong></td><td>${data.versions?.platform || 'N/A'}</td></tr>
+                    </table>
+                `;
+
+                // Atualizar status dos modelos
+                const modelsStatus = document.getElementById('models-status');
+
+                if (data.models && data.models.length > 0) {
+                    let modelsHtml = '<table><tr><th>Modelo</th><th>Status</th><th>Idiomas</th><th>Caminho</th></tr>';
+
+                    data.models.forEach(model => {
+                        const status = model.loaded ?
+                            '<span class="health-indicator health-good"></span> Carregado' :
+                            '<span class="health-indicator health-warning"></span> Não carregado';
+
+                        modelsHtml += `
+                            <tr>
+                                <td>${model.display_name}</td>
+                                <td>${status}</td>
+                                <td>${model.source_language} → ${model.target_language}</td>
+                                <td>${model.path}</td>
+                            </tr>
+                        `;
+                    });
+
+                    modelsHtml += '</table>';
+                    modelsStatus.innerHTML = modelsHtml;
+                } else {
+                    modelsStatus.innerHTML = 'Nenhum modelo disponível.';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar informações do sistema:', error);
+                document.getElementById('server-info').innerHTML = `<p class="log-error">Erro ao carregar informações: ${error.message}</p>`;
+            }
+        }
+
+        // Função para carregar detalhes dos modelos
+        async function loadModelsDetails() {
+            try {
+                const response = await fetch('/api/diagnostic/models');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Atualizar modelos disponíveis
+                const availableModels = document.getElementById('available-models');
+
+                if (data.all_models && data.all_models.length > 0) {
+                    let modelsHtml = '<table><tr><th>ID</th><th>Display</th><th>Caminho</th><th>Arquivos</th></tr>';
+
+                    data.all_models.forEach(model => {
+                        let filesStatus = '';
+                        if (model.files) {
+                            filesStatus = `${model.files.filter(f => f.exists).length}/${model.files.length} OK`;
+                        } else {
+                            filesStatus = 'N/A';
+                        }
+
+                        modelsHtml += `
+                            <tr>
+                                <td>${model.id}</td>
+                                <td>${model.display_name}</td>
+                                <td>${model.path}</td>
+                                <td>${filesStatus}</td>
+                            </tr>
+                        `;
+                    });
+
+                    modelsHtml += '</table>';
+                    availableModels.innerHTML = modelsHtml;
+
+                    // Preencher selects de modelos
+                    const modelSelect = document.getElementById('model-select');
+                    const modelSelectTranslation = document.getElementById('model-select-translation');
+
+                    // Limpar opcões existentes
+                    modelSelect.innerHTML = '<option value="">Selecione um modelo para testar...</option>';
+                    modelSelectTranslation.innerHTML = '<option value="">Selecione um modelo para tradução...</option>';
+
+                    // Adicionar opções
+                    data.all_models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = `${model.display_name} (${model.id})`;
+
+                        const option2 = option.cloneNode(true);
+
+                        modelSelect.appendChild(option);
+                        modelSelectTranslation.appendChild(option2);
+                    });
+                } else {
+                    availableModels.innerHTML = 'Nenhum modelo disponível.';
+                }
+
+                // Atualizar modelos carregados
+                const loadedModels = document.getElementById('loaded-models');
+
+                if (data.loaded_models && data.loaded_models.length > 0) {
+                    let loadedHtml = '<table><tr><th>ID</th><th>Idiomas</th><th>Tamanho do Modelo</th><th>Último Uso</th></tr>';
+
+                    data.loaded_models.forEach(model => {
+                        loadedHtml += `
+                            <tr>
+                                <td>${model.id}</td>
+                                <td>${model.source_language} → ${model.target_language}</td>
+                                <td>${model.model_size || 'N/A'}</td>
+                                <td>${model.last_used || 'N/A'}</td>
+                            </tr>
+                        `;
+                    });
+
+                    loadedHtml += '</table>';
+                    loadedModels.innerHTML = loadedHtml;
+                } else {
+                    loadedModels.innerHTML = 'Nenhum modelo carregado.';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar detalhes dos modelos:', error);
+                document.getElementById('available-models').innerHTML = `<p class="log-error">Erro ao carregar modelos: ${error.message}</p>`;
+            }
+        }
+
+        // Função para carregar logs
+        async function loadLogs() {
+            try {
+                const response = await fetch('/api/diagnostic/logs');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Atualizar logs recentes
+                const recentLogs = document.getElementById('recent-logs');
+                recentLogs.innerHTML = data.logs ? formatLogs(data.logs) : 'Nenhum log disponível.';
+            } catch (error) {
+                console.error('Erro ao carregar logs:', error);
+                document.getElementById('recent-logs').innerHTML = `<p class="log-error">Erro ao carregar logs: ${error.message}</p>`;
+            }
+        }
+
+        // Função para carregar erros
+        async function loadErrors() {
+            try {
+                const response = await fetch('/api/diagnostic/errors');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Atualizar erros do sistema
+                const systemErrors = document.getElementById('system-errors');
+                systemErrors.innerHTML = data.system_errors ? formatLogs(data.system_errors) : 'Nenhum erro do sistema registrado.';
+
+                // Atualizar erros de modelos
+                const modelErrors = document.getElementById('model-errors');
+                modelErrors.innerHTML = data.model_errors ? formatLogs(data.model_errors) : 'Nenhum erro de modelo registrado.';
+
+                // Se houver erros específicos para modelos, mostrar em uma seção dedicada
+                if (data.model_specific_errors && Object.keys(data.model_specific_errors).length > 0) {
+                    let modelSpecificHtml = '<h3 class="mt-4 mb-2 text-lg font-medium">Erros específicos por modelo</h3>';
+
+                    for (const modelId in data.model_specific_errors) {
+                        const errors = data.model_specific_errors[modelId];
+                        const isProblematic = modelId === "english-snejag-translator";
+
+                        let cardClass = "status-error";
+                        if (isProblematic) {
+                            modelSpecificHtml += `
+                                <div class="status-card ${cardClass} mt-4">
+                                    <h4 class="font-bold">⚠️ Modelo com problemas conhecidos: ${modelId}</h4>
+                                    <p class="mt-2">Este modelo possui problemas conhecidos no ambiente Render:</p>
+                                    <ul class="list-disc ml-6 mt-2">
+                                        <li>O modelo causa erros 500 no ambiente Render</li>
+                                        <li>Problemas de compatibilidade com as versões do TensorFlow/Keras</li>
+                                        <li>Possíveis problemas de permissão ou caminhos de arquivo</li>
+                                    </ul>
+                                    <div class="mt-3 mb-2">
+                                        <h5 class="font-medium">Alternativas disponíveis:</h5>
+                                        <ul class="list-disc ml-6">
+                                            <li>Use <code>${modelId}_3</code> - Versão compatível com o Render</li>
+                                            <li>Use <code>english_snejag_translator_2</code> - Versão alternativa</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mt-3 mb-2">
+                                        <h5 class="font-medium">Logs relacionados:</h5>
+                                        <div class="log-container text-xs mt-2">${errors.map(e => formatLogLine(e)).join('<br>')}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            modelSpecificHtml += `
+                                <div class="status-card ${cardClass}">
+                                    <h4 class="font-bold">Modelo com erro: ${modelId}</h4>
+                                    <div class="log-container text-xs mt-2">${errors.map(e => formatLogLine(e)).join('<br>')}</div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Adicionar seção de erros específicos ao DOM
+                    const modelSpecificErrors = document.createElement('div');
+                    modelSpecificErrors.className = 'model-specific-errors mt-4';
+                    modelSpecificErrors.innerHTML = modelSpecificHtml;
+
+                    const modelErrorsContainer = document.getElementById('model-errors').parentElement;
+                    modelErrorsContainer.appendChild(modelSpecificErrors);
+                }
+
+                // Se houver modelos com falha, destacá-los
+                if (data.failed_models && data.failed_models.length > 0) {
+                    const failedModelsDiv = document.createElement('div');
+                    failedModelsDiv.className = 'status-card status-error mt-4';
+                    failedModelsDiv.innerHTML = `
+                        <h4 class="font-bold">Modelos com falha:</h4>
+                        <ul class="list-disc ml-6 mt-2">
+                            ${data.failed_models.map(model => `<li>${model}</li>`).join('')}
+                        </ul>
+                        <p class="mt-2">Estes modelos não estão funcionando corretamente. Use as alternativas recomendadas.</p>
+                    `;
+
+                    const modelErrorsContainer = document.getElementById('model-errors').parentElement;
+                    modelErrorsContainer.appendChild(failedModelsDiv);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar erros:', error);
+                document.getElementById('system-errors').innerHTML = `<p class="log-error">Erro ao carregar erros: ${error.message}</p>`;
+            }
+        }
+
+        // Função para testar carregamento de modelo
+        async function testModelLoading(modelId) {
+            const resultsContainer = document.getElementById('test-results');
+            resultsContainer.innerHTML = 'Testando carregamento do modelo, aguarde...';
+
+            try {
+                const response = await fetch(`/api/diagnostic/test-model?model_id=${encodeURIComponent(modelId)}`);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+                resultsContainer.innerHTML = formatLogs(data.results || 'Teste concluído, mas sem resultado.');
+            } catch (error) {
+                console.error('Erro ao testar modelo:', error);
+                resultsContainer.innerHTML = `<p class="log-error">Erro ao testar modelo: ${error.message}</p>`;
+            }
+        }
+
+        // Função para testar tradução
+        async function testTranslation(modelId, text) {
+            const resultsContainer = document.getElementById('translation-results');
+            resultsContainer.innerHTML = 'Realizando tradução, aguarde...';
+
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ model: modelId, text: text })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultsContainer.innerHTML = `
+                        <p><strong>Texto original:</strong> ${text}</p>
+                        <p><strong>Tradução:</strong> ${data.translated_text}</p>
+                        <p><strong>Origem:</strong> ${data.from_correction ? 'Correção manual' : 'Modelo'}</p>
+                        <p><strong>Idiomas:</strong> ${data.source_language || 'Desconhecido'} → ${data.target_language || 'Desconhecido'}</p>
+                    `;
+                } else {
+                    resultsContainer.innerHTML = `<p class="log-error">Erro na tradução: ${data.error || 'Erro desconhecido'}</p>`;
+                }
+            } catch (error) {
+                console.error('Erro ao testar tradução:', error);
+                resultsContainer.innerHTML = `<p class="log-error">Erro ao realizar tradução: ${error.message}</p>`;
+            }
+        }
+
+        // Função para executar diagnóstico completo
+        async function runFullDiagnostic() {
+            const resultsContainer = document.getElementById('diagnostic-results');
+            resultsContainer.innerHTML = 'Executando diagnóstico completo, aguarde...';
+
+            try {
+                const response = await fetch('/api/debug/render?key=debug-render-2025');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Formatar resultado como JSON com indentação
+                const formattedJson = JSON.stringify(data, null, 2);
+                resultsContainer.innerText = formattedJson;
+            } catch (error) {
+                console.error('Erro ao executar diagnóstico:', error);
+                resultsContainer.innerHTML = `<p class="log-error">Erro ao executar diagnóstico: ${error.message}</p>`;
+            }
+        }
+
+        // Configurar eventos de botões
+        document.getElementById('refresh-system').addEventListener('click', loadSystemInfo);
+        document.getElementById('refresh-models').addEventListener('click', loadModelsDetails);
+        document.getElementById('refresh-logs').addEventListener('click', loadLogs);
+        document.getElementById('refresh-errors').addEventListener('click', loadErrors);
+
+        document.getElementById('copy-logs').addEventListener('click', () => {
+            const logText = document.getElementById('recent-logs').innerText;
+            navigator.clipboard.writeText(logText)
+                .then(() => alert('Logs copiados para a área de transferência!'))
+                .catch(err => alert('Erro ao copiar logs: ' + err));
+        });
+
+        document.getElementById('copy-errors').addEventListener('click', () => {
+            const errorTexts = [
+                document.getElementById('system-errors').innerText,
+                document.getElementById('model-errors').innerText
+            ].join('\n\n');
+
+            navigator.clipboard.writeText(errorTexts)
+                .then(() => alert('Erros copiados para a área de transferência!'))
+                .catch(err => alert('Erro ao copiar erros: ' + err));
+        });
+
+        document.getElementById('test-model-btn').addEventListener('click', () => {
+            const modelId = document.getElementById('model-select').value;
+            if (modelId) {
+                testModelLoading(modelId);
+            } else {
+                alert('Por favor, selecione um modelo para testar.');
+            }
+        });
+
+        document.getElementById('test-translation-btn').addEventListener('click', () => {
+            const modelId = document.getElementById('model-select-translation').value;
+            const text = document.getElementById('test-text').value.trim();
+
+            if (modelId && text) {
+                testTranslation(modelId, text);
+            } else {
+                alert('Por favor, selecione um modelo e digite um texto para traduzir.');
+            }
+        });
+
+        document.getElementById('full-diagnostic-btn').addEventListener('click', runFullDiagnostic);
+
+        // Carregar dados iniciais
+        loadSystemInfo();
+        loadModelsDetails();
+        loadLogs();
+        loadErrors();
+    </script>
+</body>
+
+</html>

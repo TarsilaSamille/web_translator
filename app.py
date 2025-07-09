@@ -4,7 +4,10 @@
 
 import os
 import json
+import sys
+import platform
 import datetime
+import traceback
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from inference import Translator
@@ -579,6 +582,102 @@ def api_translate():
     # Obter ou carregar o tradutor
     try:
         print(f"[DEBUG] Tentando obter ou carregar o tradutor para o modelo: {model_id}")
+        
+        # Verificar se estamos no ambiente Render e se o modelo é conhecido por ter problemas
+        render_env = os.environ.get('RENDER') == 'true' or '/opt/render' in os.getcwd()
+        if render_env and model_id == "english-snejag-translator":
+            print(f"[DEBUG] Modelo problemático detectado no ambiente Render: {model_id}")
+            
+            # Criar um log detalhado para diagnóstico
+            diagnostic_info = {
+                "timestamp": datetime.datetime.now().isoformat(),
+                "environment": "Render" if render_env else "Local",
+                "model_id": model_id,
+                "request_text": text[:100] + "..." if len(text) > 100 else text
+            }
+            
+            # Tentar coletar informações específicas do modelo
+            try:
+                model_path = os.path.join(os.path.dirname(__file__), "models", model_id)
+                diagnostic_info["model_path"] = model_path
+                diagnostic_info["model_path_exists"] = os.path.exists(model_path)
+                
+                if os.path.exists(model_path):
+                    files = os.listdir(model_path)
+                    diagnostic_info["model_files"] = files
+                    
+                    # Verificar tamanhos dos arquivos
+                    file_sizes = {}
+                    for file in files:
+                        file_path = os.path.join(model_path, file)
+                        if os.path.isfile(file_path):
+                            file_sizes[file] = os.path.getsize(file_path)
+                    diagnostic_info["file_sizes"] = file_sizes
+            except Exception as model_error:
+                diagnostic_info["model_inspection_error"] = str(model_error)
+            
+            # Salvar informações de diagnóstico
+            try:
+                diag_dir = os.path.join(os.path.dirname(__file__), "diagnostics")
+                os.makedirs(diag_dir, exist_ok=True)
+                diag_file = os.path.join(diag_dir, f"model_error_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+                with open(diag_file, "w") as f:
+                    json.dump(diagnostic_info, f, indent=2)
+                print(f"[DEBUG] Informações de diagnóstico salvas em {diag_file}")
+            except Exception as diag_error:
+                print(f"[DEBUG] Erro ao salvar diagnóstico: {str(diag_error)}")
+            
+            # Retornar uma mensagem de erro mais detalhada e específica
+            error_message = (
+                f"O modelo {model_id} está apresentando problemas no ambiente Render. "
+                f"Este é um problema conhecido e estamos trabalhando para resolvê-lo. "
+                f"Por favor, selecione um modelo alternativo ou acesse a página de diagnóstico para mais informações."
+            )
+            
+            # Tente usar um modelo alternativo automaticamente
+            alt_model_id = f"{model_id}_3"  # Versão alternativa
+            print(f"[DEBUG] Tentando usar modelo alternativo: {alt_model_id}")
+            
+            # Tenta o modelo alternativo silenciosamente
+            alt_translator = None
+            try:
+                alt_model_info = next((m for m in get_available_models() if m["id"] == alt_model_id), None)
+                if alt_model_info:
+                    alt_translator = get_or_load_translator(alt_model_id)
+                    if alt_translator:
+                        print(f"[DEBUG] Modelo alternativo {alt_model_id} carregado com sucesso")
+            except Exception as alt_error:
+                print(f"[DEBUG] Erro ao carregar modelo alternativo: {str(alt_error)}")
+            
+            # Se encontrou um alternativo, usa-o silenciosamente
+            if alt_translator:
+                try:
+                    translated_text = alt_translator.translate(text)
+                    print(f"[DEBUG] Tradução realizada com sucesso usando modelo alternativo: '{translated_text}'")
+                    
+                    return jsonify({
+                        'success': True,
+                        'translated_text': translated_text,
+                        'source_language': alt_translator.source_language,
+                        'target_language': alt_translator.target_language,
+                        'from_correction': False,
+                        'used_alternative_model': True,
+                        'original_model': model_id,
+                        'actual_model': alt_model_id,
+                        'model_note': "Modelo alternativo usado automaticamente devido a problemas conhecidos"
+                    })
+                except Exception as translate_error:
+                    print(f"[DEBUG] Erro na tradução com modelo alternativo: {str(translate_error)}")
+            
+            # Se não funcionou, retornar o erro
+            return jsonify({
+                'success': False,
+                'error': error_message,
+                'diagnostic_info': diagnostic_info,
+                'error_type': 'known_model_issue'
+            }), 503  # Service Unavailable
+        
+        # Tentativa normal para outros modelos
         translator = get_or_load_translator(model_id)
         
         if not translator:
@@ -586,9 +685,24 @@ def api_translate():
             # Verificar se o método de fallback existe
             if 'fallback_translation' not in globals():
                 print(f"[DEBUG] ERRO: Método fallback_translation não está definido!")
+                error_message = f'Erro ao carregar modelo {model_id} e método de fallback não está disponível.'
+                
+                # Adicionar mais detalhes sobre o erro
+                try:
+                    model_path = os.path.join(os.path.dirname(__file__), "models", model_id)
+                    if not os.path.exists(model_path):
+                        error_message = f'Modelo {model_id} não encontrado no sistema.'
+                    else:
+                        required_files = ["model.keras", "config.json", "source_tokenizer.json", "target_tokenizer.json"]
+                        missing_files = [f for f in required_files if not os.path.exists(os.path.join(model_path, f))]
+                        if missing_files:
+                            error_message = f'Modelo {model_id} está incompleto. Arquivos ausentes: {", ".join(missing_files)}'
+                except Exception as dir_error:
+                    error_message += f" Erro adicional ao verificar diretório: {str(dir_error)}"
+                
                 return jsonify({
                     'success': False,
-                    'error': f'Erro ao carregar modelo {model_id} e método de fallback não está disponível.'
+                    'error': error_message
                 }), 500
                 
             # Usar o método de fallback para modelos com problemas de compatibilidade
@@ -600,6 +714,33 @@ def api_translate():
             translated_text = translator.translate(text)
             print(f"[DEBUG] Tradução realizada com sucesso: '{translated_text}'")
             
+            # Registrar sucesso para análises futuras
+            try:
+                # Salvar estatística de uso bem-sucedido
+                stats_dir = os.path.join(os.path.dirname(__file__), "stats")
+                os.makedirs(stats_dir, exist_ok=True)
+                stats_file = os.path.join(stats_dir, f"model_usage.json")
+                
+                # Carregar estatísticas existentes ou criar novas
+                stats = {}
+                if os.path.exists(stats_file):
+                    try:
+                        with open(stats_file, "r") as f:
+                            stats = json.load(f)
+                    except:
+                        stats = {}
+                
+                # Atualizar estatísticas
+                if model_id not in stats:
+                    stats[model_id] = {"success": 0, "failure": 0}
+                stats[model_id]["success"] = stats[model_id]["success"] + 1
+                
+                # Salvar estatísticas atualizadas
+                with open(stats_file, "w") as f:
+                    json.dump(stats, f, indent=2)
+            except Exception as stats_error:
+                print(f"[DEBUG] Erro ao atualizar estatísticas: {str(stats_error)}")
+            
             return jsonify({
                 'success': True,
                 'translated_text': translated_text,
@@ -609,14 +750,84 @@ def api_translate():
             })
         except Exception as e:
             print(f"[DEBUG] ERRO durante a tradução: {e}")
-            import traceback
             print(f"[DEBUG] Traceback da tradução: {traceback.format_exc()}")
-            raise
+            
+            # Registrar falha para análises futuras
+            try:
+                # Salvar estatística de uso com falha
+                stats_dir = os.path.join(os.path.dirname(__file__), "stats")
+                os.makedirs(stats_dir, exist_ok=True)
+                stats_file = os.path.join(stats_dir, f"model_usage.json")
+                
+                # Carregar estatísticas existentes ou criar novas
+                stats = {}
+                if os.path.exists(stats_file):
+                    try:
+                        with open(stats_file, "r") as f:
+                            stats = json.load(f)
+                    except:
+                        stats = {}
+                
+                # Atualizar estatísticas
+                if model_id not in stats:
+                    stats[model_id] = {"success": 0, "failure": 0}
+                stats[model_id]["failure"] = stats[model_id]["failure"] + 1
+                
+                # Salvar estatísticas atualizadas
+                with open(stats_file, "w") as f:
+                    json.dump(stats, f, indent=2)
+            except Exception as stats_error:
+                print(f"[DEBUG] Erro ao atualizar estatísticas: {str(stats_error)}")
+            
+            # Salvar informações detalhadas do erro
+            try:
+                error_data = {
+                    "timestamp": datetime.datetime.now().isoformat(),
+                    "model_id": model_id,
+                    "text_sample": text[:100] + "..." if len(text) > 100 else text,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                    "traceback": traceback.format_exc()
+                }
+                
+                error_dir = os.path.join(os.path.dirname(__file__), "errors")
+                os.makedirs(error_dir, exist_ok=True)
+                error_file = os.path.join(error_dir, f"translation_error_{model_id}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+                with open(error_file, "w") as f:
+                    json.dump(error_data, f, indent=2, default=str)
+                print(f"[DEBUG] Detalhes do erro salvos em {error_file}")
+            except Exception as error_log_error:
+                print(f"[DEBUG] Erro ao salvar detalhes do erro: {str(error_log_error)}")
+            
+            # Retornar erro detalhado para o frontend
+            return jsonify({
+                'success': False,
+                'error': f"Erro ao traduzir o texto: {str(e)}",
+                'error_type': type(e).__name__,
+                'model_id': model_id,
+                'diagnostic_url': '/diagnostic'
+            }), 500
             
     except Exception as e:
-        import traceback
         print(f"[DEBUG] ERRO ao traduzir com modelo {model_id}: {e}")
         print(f"[DEBUG] Traceback completo: {traceback.format_exc()}")
+        
+        # Retornar erro para o frontend
+        error_info = {
+            'success': False,
+            'error': f"Erro ao processar a tradução com o modelo {model_id}: {str(e)}",
+            'error_type': type(e).__name__,
+            'model_id': model_id,
+            'diagnostic_url': '/diagnostic'
+        }
+        
+        # Se for o modelo problemático, adicione informações adicionais
+        if model_id == "english-snejag-translator":
+            error_info['known_issue'] = True
+            error_info['alternative_model'] = f"{model_id}_3"
+            error_info['error_note'] = "Este modelo tem problemas conhecidos no ambiente Render. Tente um modelo alternativo."
+        
+        return jsonify(error_info), 500
         
         # Verificar se o método de fallback existe
         if 'fallback_translation' not in globals():
@@ -817,10 +1028,19 @@ def get_corrections():
 
 import threading
 import time
-from keep_alive import ping_server
 
 # Variável global para controlar o thread de auto-ping
 keep_alive_thread = None
+
+# Função de ping para manter servidor ativo
+def ping_server():
+    """Função simples de ping para manter servidor ativo"""
+    try:
+        import requests
+        response = requests.get('http://localhost:5000/api/status', timeout=5)
+        return response.status_code == 200
+    except:
+        return False
 
 # Registrar o tempo de início do aplicativo
 app.start_time = datetime.datetime.now()
@@ -871,7 +1091,181 @@ def render_debug():
             'error': str(e),
             'traceback': traceback.format_exc()
         }), 500
+        
+@app.route('/diagnostic')
+def diagnostic_page():
+    """Página de diagnóstico do sistema"""
+    models = get_available_models()
+    
+    # Obter informações detalhadas dos modelos
+    model_stats = []
+    for model in models:
+        model_id = model['id']
+        is_loaded = model_id in loaded_translators
+        
+        # Tentar obter estatísticas do modelo
+        try:
+            if is_loaded:
+                translator = loaded_translators[model_id]
+                last_used = getattr(translator, 'last_used', 'N/A')
+                model_stats.append({
+                    'id': model_id,
+                    'status': 'loaded',
+                    'last_used': last_used
+                })
+            else:
+                model_stats.append({
+                    'id': model_id,
+                    'status': 'not_loaded'
+                })
+        except Exception as e:
+            model_stats.append({
+                'id': model_id,
+                'status': 'error',
+                'error_message': str(e)
+            })
+    
+    # Informações do sistema
+    system_info = {
+        'cpu_usage': 0,
+        'memory_usage': 0,
+        'temperature': 0,
+        'translations_today': 0
+    }
+    
+    try:
+        import psutil
+        # Obter métricas do sistema
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        memory_used_mb = round(memory.used / (1024 * 1024), 1)
+        
+        # Temperatura do sistema (se disponível)
+        temperature = None
+        try:
+            if hasattr(psutil, 'sensors_temperatures'):
+                temps = psutil.sensors_temperatures()
+                if temps:
+                    # Tentar obter temperatura da CPU
+                    for name, entries in temps.items():
+                        if 'cpu' in name.lower() or 'thermal' in name.lower():
+                            if entries:
+                                temperature = round(entries[0].current, 1)
+                                break
+        except:
+            pass
+        
+        # Se não conseguir obter temperatura, usar um valor padrão
+        if temperature is None:
+            temperature = round(45.0 + (cpu_percent / 100) * 25, 1)  # Estimativa baseada em CPU
+        
+        # Contar traduções do dia atual
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        stats_file = os.path.join(os.path.dirname(__file__), 'stats', 'model_usage.json')
+        translations_today = 0
+        
+        if os.path.exists(stats_file):
+            try:
+                with open(stats_file, 'r') as f:
+                    stats = json.load(f)
+                    for model_id, model_stats in stats.items():
+                        if 'daily_usage' in model_stats and today in model_stats['daily_usage']:
+                            translations_today += model_stats['daily_usage'][today]
+            except:
+                pass
+        
+        system_info = {
+            'cpu_usage': round(cpu_percent, 1),
+            'memory_usage': memory_used_mb,
+            'temperature': temperature,
+            'translations_today': translations_today
+        }
+    except ImportError:
+        pass  # psutil não disponível, ignora métricas do sistema
+    
+    current_datetime = datetime.datetime.now().isoformat()
+    
+    return render_template('diagnostic.html', 
+                         models=models,
+                         model_stats=model_stats,
+                         system_info=system_info,
+                         current_datetime=current_datetime)
 
+# Endpoint para métricas de desempenho do sistema
+@app.route('/api/system-metrics')
+def get_system_metrics():
+    """Retorna métricas de desempenho do sistema em tempo real"""
+    try:
+        import psutil
+        import datetime
+        
+        # Obter métricas do sistema
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        memory_used_mb = round(memory.used / (1024 * 1024), 1)
+        
+        # Temperatura do sistema (se disponível)
+        temperature = None
+        try:
+            if hasattr(psutil, 'sensors_temperatures'):
+                temps = psutil.sensors_temperatures()
+                if temps:
+                    # Tentar obter temperatura da CPU
+                    for name, entries in temps.items():
+                        if 'cpu' in name.lower() or 'thermal' in name.lower():
+                            if entries:
+                                temperature = round(entries[0].current, 1)
+                                break
+        except:
+            pass
+        
+        # Se não conseguir obter temperatura, usar um valor padrão
+        if temperature is None:
+            temperature = round(45.0 + (cpu_percent / 100) * 25, 1)  # Estimativa baseada em CPU
+        
+        # Contar traduções do dia atual
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        stats_file = os.path.join(os.path.dirname(__file__), 'stats', 'model_usage.json')
+        translations_today = 0
+        
+        if os.path.exists(stats_file):
+            try:
+                with open(stats_file, 'r') as f:
+                    stats = json.load(f)
+                    for model_id, model_stats in stats.items():
+                        if 'daily_usage' in model_stats and today in model_stats['daily_usage']:
+                            translations_today += model_stats['daily_usage'][today]
+            except:
+                pass
+        
+        return jsonify({
+            'success': True,
+            'cpu_usage': round(cpu_percent, 1),
+            'memory_usage': memory_used_mb,
+            'temperature': temperature,
+            'translations_today': translations_today,
+            'timestamp': datetime.datetime.now().isoformat()
+        })
+        
+    except ImportError:
+        # Se psutil não estiver disponível, retornar valores simulados
+        import random
+        return jsonify({
+            'success': True,
+            'cpu_usage': round(random.uniform(30, 70), 1),
+            'memory_usage': round(random.uniform(256, 512), 1),
+            'temperature': round(random.uniform(45, 65), 1),
+            'translations_today': random.randint(0, 50),
+            'timestamp': datetime.datetime.now().isoformat(),
+            'note': 'Métricas simuladas (psutil não disponível)'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# Função para iniciar thread de auto-ping (manter servidor ativo)
 def start_auto_ping():
     """Inicia um thread para fazer auto-ping e manter o servidor ativo"""
     def run_ping_loop():
@@ -879,7 +1273,7 @@ def start_auto_ping():
         while True:
             try:
                 # Usar o endpoint de status para ping interno
-                ping_server("http://localhost:5000/api/status")
+                ping_server()
                 time.sleep(25)  # Intervalo de 25 segundos (menor que o limite de 30s)
             except Exception as e:
                 print(f"Erro no auto-ping: {e}")

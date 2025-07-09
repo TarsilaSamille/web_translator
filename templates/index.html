@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tradutor Web</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -29,15 +32,22 @@
     </script>
     <style>
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         .loader {
             display: none;
             animation: spin 2s linear infinite;
         }
     </style>
 </head>
+
 <body class="font-sans bg-gray-50 pt-5">
     <div class="container mx-auto px-4">
         <nav class="bg-primary rounded-lg mb-5 shadow-md">
@@ -46,16 +56,22 @@
                     <a class="text-white font-semibold text-xl" href="/">Tradutor Web</a>
                     <div class="hidden md:block">
                         <div class="flex space-x-4">
-                            <a class="text-white hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/">Tradutor</a>
-                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/models">Modelos</a>
-                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/history">Histórico</a>
-                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/corrections">Correções</a>
+                            <a class="text-white hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                                href="/">Tradutor</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                                href="/models">Modelos</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                                href="/history">Histórico</a>
+                            <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                                href="/corrections">Correções</a>
                         </div>
                     </div>
                     <div class="md:hidden">
                         <button id="mobile-menu-button" class="text-white hover:bg-primaryDark p-2 rounded-md">
-                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
                     </div>
@@ -63,14 +79,17 @@
                 <div id="mobile-menu" class="hidden md:hidden mt-2">
                     <div class="flex flex-col space-y-2 pb-3">
                         <a class="text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/">Tradutor</a>
-                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/models">Modelos</a>
-                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/history">Histórico</a>
-                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md" href="/corrections">Correções</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                            href="/models">Modelos</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                            href="/history">Histórico</a>
+                        <a class="text-white/80 hover:text-white hover:bg-primaryDark px-3 py-2 rounded-md"
+                            href="/corrections">Correções</a>
                     </div>
                 </div>
             </div>
         </nav>
-        
+
         <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-primary">Tradutor Web</h1>
@@ -79,13 +98,16 @@
 
             <div class="flex justify-center mb-6">
                 <div class="relative w-full md:w-96">
-                    <select id="model-selector" class="w-full p-3 pl-4 pr-10 border border-gray-300 bg-white rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-gray-700">
+                    <select id="model-selector"
+                        class="w-full p-3 pl-4 pr-10 border border-gray-300 bg-white rounded-lg shadow-sm appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-gray-700">
                         {% for model in models %}
                         <option value="{{ model.id }}">{{ model.display_name }}</option>
                         {% endfor %}
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg class="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M7 7l3-3 3 3m0 6l-3 3-3-3"/></svg>
+                        <svg class="fill-current h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" />
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -93,50 +115,108 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="relative">
                     <label for="source-text" class="block text-sm font-medium text-gray-700 mb-2">Texto original</label>
-                    <textarea id="source-text" class="source-text w-full min-h-[200px] bg-gray-50 border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-primary resize-none font-sans" placeholder="Digite o texto para traduzir"></textarea>
-                    <div class="absolute bottom-2 right-3 text-xs text-gray-500"><span id="source-chars">0</span> / 5000</div>
-                    <button class="absolute top-10 right-3 text-gray-500 hover:bg-gray-100 p-1 rounded" onclick="copyText('source-text')">
+                    <textarea id="source-text"
+                        class="source-text w-full min-h-[200px] bg-gray-50 border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-primary resize-none font-sans"
+                        placeholder="Digite o texto para traduzir"></textarea>
+                    <div class="absolute bottom-2 right-3 text-xs text-gray-500"><span id="source-chars">0</span> / 5000
+                    </div>
+                    <button class="absolute top-10 right-3 text-gray-500 hover:bg-gray-100 p-1 rounded"
+                        onclick="copyText('source-text')">
                         <i class="fas fa-copy"></i> Copiar
                     </button>
                 </div>
                 <div class="relative">
                     <label for="target-text" class="block text-sm font-medium text-gray-700 mb-2">Tradução</label>
-                    <textarea id="target-text" class="target-text w-full min-h-[200px] bg-gray-50 border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-primary resize-none font-serif" placeholder="Tradução aparecerá aqui"></textarea>
-                    <div class="absolute bottom-2 right-3 text-xs text-gray-500"><span id="target-chars">0</span> caracteres</div>
-                    <button class="absolute top-10 right-3 text-gray-500 hover:bg-gray-100 p-1 rounded" onclick="copyText('target-text')">
+                    <textarea id="target-text"
+                        class="target-text w-full min-h-[200px] bg-gray-50 border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-primary resize-none font-serif"
+                        placeholder="Tradução aparecerá aqui"></textarea>
+                    <div class="absolute bottom-2 right-3 text-xs text-gray-500"><span id="target-chars">0</span>
+                        caracteres</div>
+                    <button class="absolute top-10 right-3 text-gray-500 hover:bg-gray-100 p-1 rounded"
+                        onclick="copyText('target-text')">
                         <i class="fas fa-copy"></i> Copiar
                     </button>
                     <div class="absolute top-10 right-20 text-gray-500">
-                        <button id="correction-button" class="hover:bg-gray-100 p-1 rounded hidden" onclick="saveTranslationCorrection()">
+                        <button id="correction-button" class="hover:bg-gray-100 p-1 rounded hidden"
+                            onclick="saveTranslationCorrection()">
                             <i class="fas fa-save"></i> Salvar correção
                         </button>
                         <span id="correction-status" class="text-green-500 hidden"></span>
                     </div>
                     <div class="absolute -bottom-6 left-0 text-xs text-gray-500 italic" id="correction-note">
-                        <i class="fas fa-info-circle"></i> Você pode editar a tradução se encontrar erros e clicar em "Salvar correção".
+                        <i class="fas fa-info-circle"></i> Você pode editar a tradução se encontrar erros e clicar em
+                        "Salvar correção".
                     </div>
                 </div>
             </div>
 
             <div class="text-center mt-8">
-                <button id="translate-btn" class="bg-primary hover:bg-primaryDark text-white font-medium py-2 px-6 rounded-lg transition-colors">Traduzir</button>
-                <div id="loader" class="loader mt-3 mx-auto h-6 w-6 border-4 border-gray-200 border-t-primary rounded-full"></div>
+                <button id="translate-btn"
+                    class="bg-primary hover:bg-primaryDark text-white font-medium py-2 px-6 rounded-lg transition-colors">Traduzir</button>
+                <div id="loader"
+                    class="loader mt-3 mx-auto h-6 w-6 border-4 border-gray-200 border-t-primary rounded-full"></div>
             </div>
-            
+
             <div class="text-center mt-6 text-sm text-gray-500">
                 <p>Powered by modelos de tradução neural</p>
             </div>
-            
+
+            <!-- Seção de Métricas de Desempenho do Sistema -->
+            <div class="mt-8 bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Métricas de Desempenho do Sistema
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-500">CPU Usage</div>
+                        <div id="cpu-usage" class="text-2xl font-bold text-blue-600">--</div>
+                        <div class="text-xs text-gray-400">Utilização atual</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-500">Memory Usage</div>
+                        <div id="memory-usage" class="text-2xl font-bold text-green-600">--</div>
+                        <div class="text-xs text-gray-400">MB utilizados</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-500">Response Time</div>
+                        <div id="response-time" class="text-2xl font-bold text-purple-600">--</div>
+                        <div class="text-xs text-gray-400">ms (última tradução)</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-500">Translations Today</div>
+                        <div id="translations-count" class="text-2xl font-bold text-orange-600">--</div>
+                        <div class="text-xs text-gray-400">Traduções realizadas</div>
+                    </div>
+                    <div class="bg-white rounded-lg p-4 shadow-sm">
+                        <div class="text-sm text-gray-500">System Temperature</div>
+                        <div id="system-temp" class="text-2xl font-bold text-red-600">--</div>
+                        <div class="text-xs text-gray-400">°C (CPU)</div>
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button id="refresh-metrics"
+                        class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Atualizar Métricas
+                    </button>
+                </div>
+            </div>
+
             <!-- Modal para feedback de correção salva -->
-            <div id="correction-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div id="correction-modal"
+                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
                 <div class="bg-white rounded-lg p-6 max-w-sm w-full">
                     <div class="text-center">
                         <div class="text-green-500 mb-4">
                             <i class="fas fa-check-circle text-4xl"></i>
                         </div>
                         <h3 class="text-xl font-medium text-gray-900 mb-2">Correção salva!</h3>
-                        <p class="text-gray-600 mb-4">Sua correção de tradução foi salva com sucesso. Obrigado pela contribuição!</p>
-                        <button id="correction-modal-close" class="w-full bg-primary hover:bg-primaryDark text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                        <p class="text-gray-600 mb-4">Sua correção de tradução foi salva com sucesso. Obrigado pela
+                            contribuição!</p>
+                        <button id="correction-modal-close"
+                            class="w-full bg-primary hover:bg-primaryDark text-white font-medium py-2 px-6 rounded-lg transition-colors">
                             Fechar
                         </button>
                     </div>
@@ -146,8 +226,9 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/performance-metrics.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sourceText = document.getElementById('source-text');
             const targetText = document.getElementById('target-text');
             const translateBtn = document.getElementById('translate-btn');
@@ -159,42 +240,42 @@
             const correctionStatus = document.getElementById('correction-status');
             const correctionModal = document.getElementById('correction-modal');
             const correctionModalClose = document.getElementById('correction-modal-close');
-            
+
             // Variáveis para controlar a tradução original
             let originalTranslation = '';
             let currentTranslationData = null;
-            
+
             // Menu mobile toggle
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            
+
             if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', function() {
+                mobileMenuButton.addEventListener('click', function () {
                     mobileMenu.classList.toggle('hidden');
                 });
             }
-            
+
             // Verificar se a tradução foi editada para mostrar o botão de salvar correção
-            targetText.addEventListener('input', function() {
+            targetText.addEventListener('input', function () {
                 const isEdited = (targetText.value !== originalTranslation) && originalTranslation !== '';
-                
+
                 if (isEdited && originalTranslation.trim() !== '') {
                     correctionButton.classList.remove('hidden');
                     correctionStatus.classList.add('hidden');
                 } else {
                     correctionButton.classList.add('hidden');
                 }
-                
+
                 targetChars.textContent = this.value.length;
             });
-            
+
             // Fechar modal de correção
             if (correctionModalClose) {
-                correctionModalClose.addEventListener('click', function() {
+                correctionModalClose.addEventListener('click', function () {
                     correctionModal.classList.add('hidden');
                 });
             }
-            
+
             // Função para verificar se já existe uma correção
             function checkForExistingCorrection(modelId, text) {
                 if (hasCorrectionFor(modelId, text)) {
@@ -212,38 +293,38 @@
             const urlParams = new URLSearchParams(window.location.search);
             const urlModel = urlParams.get('model');
             const urlText = urlParams.get('text');
-            
+
             // Verificar modelos salvos anteriormente
             const lastModel = getLastUsedModel();
-            
+
             // Definir o modelo selecionado
             if (urlModel && document.querySelector(`option[value="${urlModel}"]`)) {
                 modelSelector.value = urlModel;
             } else if (lastModel && document.querySelector(`option[value="${lastModel}"]`)) {
                 modelSelector.value = lastModel;
             }
-            
+
             // Preencher texto se estiver na URL
             if (urlText) {
                 sourceText.value = decodeURIComponent(urlText);
                 sourceChars.textContent = sourceText.value.length;
-                
+
                 // Traduzir automaticamente se houver texto
                 setTimeout(() => {
                     translate();
                 }, 500);
             }
-            
+
             // Salvar modelo quando alterado
-            modelSelector.addEventListener('change', function() {
+            modelSelector.addEventListener('change', function () {
                 saveLastUsedModel(this.value);
             });
 
             // Atualizar contagem de caracteres
-            sourceText.addEventListener('input', function() {
+            sourceText.addEventListener('input', function () {
                 const charCount = this.value.length;
                 sourceChars.textContent = charCount;
-                
+
                 // Desativar se ultrapassar o limite
                 if (charCount > 5000) {
                     this.value = this.value.substring(0, 5000);
@@ -255,7 +336,7 @@
             translateBtn.addEventListener('click', translate);
 
             // Traduzir ao pressionar Ctrl+Enter
-            sourceText.addEventListener('keydown', function(e) {
+            sourceText.addEventListener('keydown', function (e) {
                 if (e.ctrlKey && e.key === 'Enter') {
                     translate();
                 }
@@ -264,23 +345,26 @@
             function translate() {
                 const text = sourceText.value.trim();
                 const modelId = modelSelector.value;
-                
+
                 if (!text) {
                     alert("Por favor, digite algum texto para traduzir.");
                     return;
                 }
-                
+
                 // Mostrar loader e desativar botão
                 loader.style.display = 'block';
                 translateBtn.disabled = true;
-                
+
+                // Registrar início da tradução para métricas
+                const translationStartTime = Date.now();
+
                 // Verificar se já existe uma correção para este texto/modelo
                 if (checkForExistingCorrection(modelId, text)) {
                     loader.style.display = 'none';
                     translateBtn.disabled = false;
                     return;
                 }
-                
+
                 // Fazer a requisição para a API
                 fetch('/api/translate', {
                     method: 'POST',
@@ -292,13 +376,32 @@
                         model: modelId
                     })
                 })
-                .then(response => response.json())
-                .then(data => {                        if (data.success) {
+                    .then(response => response.json())
+                    .then(data => {
+                        // Registrar fim da tradução para métricas
+                        const translationEndTime = Date.now();
+
+                        if (data.success) {
+                            // Registrar métricas de tradução
+                            if (window.performanceMetrics) {
+                                window.performanceMetrics.recordTranslationTime(
+                                    translationStartTime,
+                                    translationEndTime,
+                                    text.length,
+                                    data.translated_text.length,
+                                    modelId
+                                );
+                            }
+
+                            // Atualizar o campo de response time nas métricas
+                            const responseTime = translationEndTime - translationStartTime;
+                            document.getElementById('response-time').textContent = responseTime;
+
                             // Armazenar a tradução original para comparar se houver edições
                             originalTranslation = data.translated_text;
                             targetText.value = data.translated_text;
                             targetChars.textContent = data.translated_text.length;
-                            
+
                             // Armazenar os dados da tradução atual
                             currentTranslationData = {
                                 sourceText: text,
@@ -307,18 +410,18 @@
                                 sourceLang: data.source_language,
                                 targetLang: data.target_language
                             };
-                            
+
                             // Salvar no histórico
                             saveTranslationHistory(currentTranslationData);
-                            
+
                             // Mostrar o botão de correção apenas se houver uma tradução
                             correctionButton.classList.add('hidden');
-                            
+
                             // Verificar se a tradução é de uma correção salva
                             if (data.from_correction) {
                                 correctionStatus.textContent = "Tradução corrigida aplicada";
                                 correctionStatus.classList.remove('hidden');
-                                
+
                                 // Destacar a área de tradução para indicar uma correção
                                 targetText.style.backgroundColor = '#f0f9ff';
                                 targetText.style.borderColor = '#93c5fd';
@@ -327,33 +430,123 @@
                                 targetText.style.backgroundColor = '';
                                 targetText.style.borderColor = '';
                             }
-                    } else {
-                        targetText.value = `Erro: ${data.error}`;
-                    }
-                })
-                .catch(error => {
-                    targetText.value = `Erro de conexão: ${error}`;
-                })
-                .finally(() => {
-                    // Esconder loader e reativar botão
-                    loader.style.display = 'none';
-                    translateBtn.disabled = false;
-                });
+                        } else {
+                            targetText.value = `Erro: ${data.error}`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro na requisição:", error);
+                        // Tentativa de obter detalhes do erro do servidor
+                        fetch('/api/diagnostic/errors')
+                            .then(response => response.json())
+                            .then(errorData => {
+                                // Verificar se há erro para o modelo específico
+                                const modelId = document.getElementById('model-selector').value;
+                                let errorMessage = `Erro de conexão: ${error}`;
+
+                                if (errorData.model_errors && errorData.model_errors.includes(modelId)) {
+                                    errorMessage = `Erro no modelo "${modelId}". `;
+
+                                    // Adicionar link para a página de diagnóstico
+                                    targetText.value = errorMessage +
+                                        "O modelo selecionado está com problemas. Acesse a página de diagnóstico para mais detalhes.";
+
+                                    // Adicionar botão de diagnóstico
+                                    let diagButton = document.getElementById('diag-button');
+                                    if (!diagButton) {
+                                        diagButton = document.createElement('button');
+                                        diagButton.id = 'diag-button';
+                                        diagButton.className = 'mt-2 bg-blue-600 text-white px-4 py-2 rounded';
+                                        diagButton.textContent = 'Abrir Diagnóstico';
+                                        diagButton.onclick = () => window.open('/diagnostic', '_blank');
+                                        document.querySelector('.translate-actions').appendChild(diagButton);
+                                    } else {
+                                        diagButton.style.display = 'block';
+                                    }
+                                } else {
+                                    targetText.value = errorMessage;
+                                }
+                            })
+                            .catch(err => {
+                                targetText.value = `Erro de conexão: ${error}. O servidor pode estar indisponível.`;
+                            });
+                    })
+                    .finally(() => {
+                        // Esconder loader e reativar botão
+                        loader.style.display = 'none';
+                        translateBtn.disabled = false;
+                    });
             }
-            
+
+            // Função para coletar métricas de desempenho do sistema
+            function updateSystemMetrics() {
+                fetch('/api/system-metrics')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById('cpu-usage').textContent = data.cpu_usage + '%';
+                            document.getElementById('memory-usage').textContent = data.memory_usage + 'MB';
+                            document.getElementById('system-temp').textContent = data.temperature + '°C';
+                            document.getElementById('translations-count').textContent = data.translations_today;
+
+                            // Atualizar cor baseada nos valores
+                            const cpuElement = document.getElementById('cpu-usage');
+                            const memoryElement = document.getElementById('memory-usage');
+                            const tempElement = document.getElementById('system-temp');
+
+                            // Cores baseadas em thresholds
+                            if (data.cpu_usage > 80) {
+                                cpuElement.className = 'text-2xl font-bold text-red-600';
+                            } else if (data.cpu_usage > 60) {
+                                cpuElement.className = 'text-2xl font-bold text-orange-600';
+                            } else {
+                                cpuElement.className = 'text-2xl font-bold text-green-600';
+                            }
+
+                            if (data.memory_usage > 600) {
+                                memoryElement.className = 'text-2xl font-bold text-red-600';
+                            } else if (data.memory_usage > 400) {
+                                memoryElement.className = 'text-2xl font-bold text-orange-600';
+                            } else {
+                                memoryElement.className = 'text-2xl font-bold text-green-600';
+                            }
+
+                            if (data.temperature > 70) {
+                                tempElement.className = 'text-2xl font-bold text-red-600';
+                            } else if (data.temperature > 60) {
+                                tempElement.className = 'text-2xl font-bold text-orange-600';
+                            } else {
+                                tempElement.className = 'text-2xl font-bold text-green-600';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao obter métricas:', error);
+                    });
+            }
+
+            // Atualizar métricas automaticamente a cada 5 segundos
+            setInterval(updateSystemMetrics, 5000);
+
+            // Botão para atualizar métricas manualmente
+            document.getElementById('refresh-metrics').addEventListener('click', updateSystemMetrics);
+
+            // Carregar métricas iniciais
+            updateSystemMetrics();
+
             // Função para salvar a correção de tradução
-            window.saveTranslationCorrection = function() {
+            window.saveTranslationCorrection = function () {
                 if (!currentTranslationData) {
                     alert("Não há tradução atual para corrigir.");
                     return;
                 }
-                
+
                 const correctedText = targetText.value.trim();
                 if (correctedText === originalTranslation.trim()) {
                     alert("Nenhuma alteração foi feita na tradução.");
                     return;
                 }
-                
+
                 // Criar o objeto de correção
                 const correction = {
                     sourceText: currentTranslationData.sourceText,
@@ -363,18 +556,18 @@
                     sourceLang: currentTranslationData.sourceLang,
                     targetLang: currentTranslationData.targetLang
                 };
-                
+
                 // Salvar a correção
                 saveCorrection(correction);
-                
+
                 // Atualizar a UI
                 correctionButton.classList.add('hidden');
                 correctionStatus.textContent = "Correção salva!";
                 correctionStatus.classList.remove('hidden');
-                
+
                 // Mostrar modal de feedback
                 correctionModal.classList.remove('hidden');
-                
+
                 // Atualizar o histórico com a tradução corrigida
                 currentTranslationData.translatedText = correctedText;
                 saveTranslationHistory(currentTranslationData);
@@ -386,16 +579,17 @@
             element.select();
             element.setSelectionRange(0, 99999); // Para dispositivos móveis
             document.execCommand('copy');
-            
+
             // Mostrar feedback visual temporário
             const copyBtn = event.currentTarget;
             const originalText = copyBtn.innerHTML;
             copyBtn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
-            
+
             setTimeout(() => {
                 copyBtn.innerHTML = originalText;
             }, 2000);
         }
     </script>
 </body>
+
 </html>

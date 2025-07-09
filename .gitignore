@@ -1,17 +1,14 @@
-# Arquivos de ambiente virtual
-venv/
-env/
-ENV/
-
-# Arquivos de cache Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-.pytest_cache/
-.coverage
-htmlcov/
 
-# Arquivos de ambiente
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 .env
 .venv
 .env.local
@@ -19,43 +16,72 @@ htmlcov/
 .env.test
 .env.production
 
-# Arquivos de distribuição / packaging
-dist/
-build/
-*.egg-info/
+# Python cache and test files
+.pytest_cache/
+.coverage
+htmlcov/
+*.pyc
+*.pyo
+*.pyd
 
-# Logs
-logs/
+# Model files (large files)
+models/*/model.keras
+models/*/model.h5
+models/*/tokenizer.json
+models/*/vocab.json
+
+# Logs and temporary files
 *.log
-npm-debug.log*
+*.tmp
+*.temp
+tmp/
+temp/
 
-# Arquivos específicos do sistema operacional
+# Data files
+data/processed/
+data/raw/
+*.csv
+*.tsv
+*.xlsx
+*.xls
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Arquivos específicos do IDE
-.idea/
+# IDE files
 .vscode/
+.idea/
 *.swp
 *.swo
+*~
 
-# Arquivos de modelos - para evitar commits acidentais de grandes arquivos de modelo
-models/**/*.keras
-models/**/*.h5
-models/**/*.pb
-models/**/*.onnx
-models/**/*.bin
-models/**/*.pt
+# Backup files
+*.bak
+*.backup
 
-# Exceto os arquivos de configuração dos modelos
-!models/**/config.json
-!models/**/*tokenizer.json
+# Performance and benchmark results
+benchmark_results/
+performance_logs/
+*.json.results
+raspberry_pi_benchmark_*.json
 
-# Arquivos de dados grandes
-*.csv
-*.zip
-*.tar.gz
+# Corrections and stats (keep structure but not content)
+corrections/*.json
+stats/*.json
+errors/*.json
 
-# Arquivos específicos do Flask
-instance/
-.webassets-cache
+# Deployment
+deploy/
+deployment/
+*.pid
+*.sock
+
+# Render specific
+.render/
+render.yaml.bak

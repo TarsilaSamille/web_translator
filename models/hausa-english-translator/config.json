@@ -1,0 +1,14 @@
+{
+    "max_source_len": 89,
+    "max_target_len": 72,
+    "source_vocab_size": 1014,
+    "target_vocab_size": 977,
+    "source_language": "hausa",
+    "target_language": "english",
+    "model_type": "seq2seq",
+    "architecture": "transformer",
+    "max_hausa_len": 89,
+    "max_english_len": 72,
+    "hausa_vocab": 1014,
+    "english_vocab": 977
+}

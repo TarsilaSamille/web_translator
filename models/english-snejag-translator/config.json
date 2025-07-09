@@ -1,1 +1,0 @@
-{"max_source_len": 73, "max_target_len": 89, "source_vocab": 1860, "target_vocab": 1756, "source_language": "en", "target_language": "sne-jag", "model_date": "2025-05-30", "json_file": "b.json", "txt_file": "", "embedding_dim": 128, "lstm_units": 64}
