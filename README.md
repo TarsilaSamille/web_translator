@@ -5,7 +5,7 @@
 [![Flask](https://img.shields.io/badge/flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Sistema de tradução neural multilíngue otimizado para edge computing, especialmente projetado para funcionar em Raspberry Pi e ambientes de baixa conectividade.
+Sistema de tradução neural multilíngue otimizado para edge computing.
 
 ## � Visão Geral
 
@@ -13,7 +13,6 @@ Este projeto estende o trabalho seminal de **Edge NLP for Efficient Machine Tran
 
 - **Suporte Multilíngue**: Tradução entre Hausa-Inglês e Inglês-Bidaio-Jagoi
 - **Interface Web Moderna**: Dashboard responsivo com métricas em tempo real
-- **Otimização para Edge**: Especificamente otimizado para Raspberry Pi
 - **Monitoramento de Performance**: Coleta automática de métricas de sistema
 
 ## 🚀 Funcionalidades
@@ -21,7 +20,7 @@ Este projeto estende o trabalho seminal de **Edge NLP for Efficient Machine Tran
 ### ✨ Características Principais
 - 🔄 **Tradução em Tempo Real**: Interface web responsiva similar ao Google Translate
 - 📊 **Métricas de Performance**: Monitoramento de CPU, memória, temperatura
-- 🌐 **Suporte Multilíngue**: 3 pares de idiomas suportados
+- 🌐 **Suporte Multilíngue**: 2 pares de idiomas suportados
 - 💾 **Histórico Local**: Armazenamento de traduções no navegador
 - 🔧 **Correções Colaborativas**: Sistema de feedback para melhorar traduções
 - 🍓 **Raspberry Pi Ready**: Otimizado para hardware ARM
@@ -58,18 +57,6 @@ pip install -r requirements.txt
 python app.py
 ```
 
-### Instalação no Raspberry Pi
-
-```bash
-# Usar o script de configuração automática
-chmod +x scripts/raspberry_pi_setup.sh
-./scripts/raspberry_pi_setup.sh install
-./scripts/raspberry_pi_setup.sh setup
-
-# Verificar configuração
-./scripts/raspberry_pi_setup.sh check
-```
-
 ## 🏗️ Arquitetura
 
 ### Componentes Principais
@@ -95,7 +82,6 @@ chmod +x scripts/raspberry_pi_setup.sh
 |--------|---------|---------|------------|----------|
 | Hausa-English | Hausa ↔ Inglês | 24.3 MB | 73.5 | 91% |
 | English-Bidaio-Jagoi | Inglês → Bidaio-Jagoi | 28.7 MB | 68.2 | 89% |
-| Bidaio-Jagoi-English | Bidaio-Jagoi → Inglês | 28.1 MB | 71.8 | 90% |
 
 ## 🔧 Uso
 
@@ -126,30 +112,6 @@ metrics = requests.get('http://localhost:5000/api/system-metrics')
 | `/api/system-metrics` | GET | Métricas do sistema |
 | `/api/models` | GET | Lista de modelos disponíveis |
 
-## 📈 Performance
-
-### Raspberry Pi 4 (8GB RAM)
-- **CPU Usage**: 45-60% durante tradução
-- **Memory Usage**: 512MB pico
-- **Temperature**: 45-65°C operacional
-- **Response Time**: 245-698ms (dependendo do tamanho do texto)
-- **Throughput**: Até 5 usuários simultâneos
-
-### Tempos de Resposta
-- **Texto curto** (1-10 palavras): 245-289ms
-- **Texto médio** (11-25 palavras): 387-445ms
-- **Texto longo** (26-50 palavras): 612-698ms
-
-
-### Benchmark Customizado
-```bash
-# Executar benchmark Python
-python scripts/raspberry_pi_benchmark.py
-
-# Gerar relatório de performance
-python scripts/raspberry_pi_benchmark.py --export-report
-```
-
 ## 📁 Estrutura do Projeto
 
 ```
@@ -158,9 +120,6 @@ enhanced-edge-nlp-translation/
 ├── 🐍 app.py                       # Servidor Flask principal
 ├── 🧠 inference.py                 # Engine de tradução neural
 ├── 📋 requirements.txt             # Dependências Python
-├── 🔧 scripts/                     # Scripts de configuração
-│   ├── raspberry_pi_setup.sh      # Configuração do Raspberry Pi
-│   └── raspberry_pi_benchmark.py  # Sistema de benchmark
 ├── 📚 docs/                        # Documentação
 │   ├── Enhanced_Edge_NLP_Translation_System.tex
 │   └── TECHNICAL_DOCUMENTATION.md
