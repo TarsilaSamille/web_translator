@@ -1,0 +1,101 @@
+﻿{
+  "timestamp": "2025-07-19T19:55:58.475Z",
+  "collectionPeriod": {
+    "start": "2025-07-19T19:53:13.026Z",
+    "end": "2025-07-19T19:55:58.476Z",
+    "durationMs": 165450
+  },
+  "servidor": {
+    "descricao": "Métricas do servidor que executa os modelos de tradução",
+    "cpu": {
+      "utilizacaoAtual": "30.8%",
+      "utilizacaoMedia": "43.3%",
+      "utilizacaoPico": "77.2%"
+    },
+    "memoria": {
+      "utilizacaoAtual": "20415.3 MB",
+      "utilizacaoMedia": "20481.5 MB",
+      "utilizacaoPico": "20666.3 MB"
+    },
+    "temperatura": {
+      "atual": "52.7°C",
+      "media": "55.8°C",
+      "pico": "64.3°C"
+    },
+    "traducoesHoje": 0,
+    "sistema": {
+      "tipo": "Servidor Backend",
+      "plataforma": "Linux",
+      "arquitetura": "x86_64",
+      "pythonVersao": "3.11.11",
+      "encoding": "utf-8",
+      "processamento": "Dedicado para inferência de modelos"
+    },
+    "armazenamento": {
+      "total": "386.4 GB",
+      "usado": "315.8 GB (81.7%)",
+      "livre": "70.6 GB"
+    },
+    "detalhesRaspberryPi": null
+  },
+  "computadorLocal": {
+    "descricao": "Métricas do navegador do cliente que acessa o serviço",
+    "navegador": {
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36",
+      "plataforma": "Linux armv81",
+      "idioma": "en-US",
+      "resolucao": "360x780",
+      "viewport": "360x643",
+      "densidadePixels": 3,
+      "nucleosCPU": 8,
+      "memoriaDispositivo": "4 GB",
+      "sistema": {
+        "tipo": "Cliente (Navegador)",
+        "arquitetura": "JavaScript frontend",
+        "processamento": "Interface de usuário e comunicação com API"
+      }
+    },
+    "memoria": {
+      "utilizacaoAtual": "9.5 MB",
+      "utilizacaoMedia": "9.5 MB",
+      "utilizacaoPico": "9.5 MB",
+      "percentualUtilizado": "0.9%"
+    },
+    "rede": {
+      "tipoConexao": "4g",
+      "velocidade": "8.3 Mbps",
+      "latencia": "50 ms",
+      "economizadorDados": "Desativado"
+    },
+    "desempenho": {
+      "tempoCarregamentoTotal": "11833 ms",
+      "tempoRenderizacao": "2294 ms",
+      "tempoConexao": "0 ms"
+    },
+    "interacao": {
+      "cliques": 12,
+      "teclasPressionadas": 4,
+      "eventosRolagem": 888,
+      "enviosFormulario": 0,
+      "numSessoes": 2
+    },
+    "recursos": {
+      "totalRecursosCarregados": 123,
+      "tempoMedioCarregamento": "1589.9 ms"
+    }
+  },
+  "comparativo": {
+    "traducao": {
+      "tempoMedioResposta": "5942.2 ms",
+      "tempoMinimoResposta": "589 ms",
+      "tempoMaximoResposta": "15122 ms",
+      "throughput": "1.81 traduções/minuto"
+    },
+    "memoriaNavegadorVsServidor": "O navegador está usando aproximadamente 48982.87% \n                     da memória que o servidor está usando",
+    "resumo": {
+      "titulo": "Distribuição de Processamento",
+      "descricao": "O servidor realiza o processamento intensivo dos modelos neurais de tradução, consumindo mais recursos computacionais, enquanto o navegador (cliente) é responsável pela interface de usuário e comunicação com a API, utilizando menos recursos.",
+      "conclusao": "Este é um modelo de processamento cliente-servidor típico, onde o processamento pesado dos modelos de tradução é feito no servidor, economizando recursos do dispositivo do cliente."
+    }
+  }
+}

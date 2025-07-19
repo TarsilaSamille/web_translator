@@ -4,8 +4,8 @@
 ## Resumo das Melhorias Implementadas
 
 ### 1. Expansão Multilíngue
-- **Idiomas Suportados**: Hausa-Inglês, Inglês-Bidaio-Jagoi, Bidaio-Jagoi-Inglês
-- **Modelos Implementados**: 3 modelos LSTM encoder-decoder
+- **Idiomas Suportados**: Hausa-Inglês, Inglês-Bidaio-Jagoi, 
+- **Modelos Implementados**: 2 modelos LSTM encoder-decoder
 - **Tamanho Total**: ~81MB (adequado para edge computing)
 
 ### 2. Interface Web Moderna

@@ -1,0 +1,35 @@
+﻿{
+  "timestamp": "2025-07-19T19:58:02.713Z",
+  "servidor": {
+    "tipo": "Linux",
+    "modelo": "x86_64",
+    "temperatura": {
+      "atual": "58.4°C",
+      "media": "54.9°C",
+      "pico": "63.0°C"
+    },
+    "cpu": {
+      "utilizacaoAtual": "53.8%",
+      "utilizacaoMedia": "39.7%",
+      "utilizacaoPico": "72.1%"
+    },
+    "memoria": {
+      "utilizacaoAtual": "20540.3 MB",
+      "utilizacaoMedia": "20492.9 MB",
+      "utilizacaoPico": "20629.3 MB"
+    },
+    "armazenamento": {
+      "total": "386.4 GB",
+      "usado": "315.8 GB (81.7%)",
+      "livre": "70.6 GB"
+    },
+    "sistema": {
+      "tipo": "Servidor Backend",
+      "plataforma": "Linux",
+      "arquitetura": "x86_64",
+      "pythonVersao": "3.11.11",
+      "encoding": "utf-8",
+      "processamento": "Dedicado para inferência de modelos"
+    }
+  }
+}

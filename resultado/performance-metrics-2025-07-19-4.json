@@ -1,0 +1,112 @@
+﻿{
+  "collectionPeriod": {
+    "start": 1752954793026,
+    "end": 1752954948359,
+    "duration": 155333
+  },
+  "translationMetrics": {
+    "totalTranslations": 5,
+    "averageResponseTime": 5942.2,
+    "minResponseTime": 589,
+    "maxResponseTime": 15122,
+    "medianResponseTime": 1673,
+    "averageTextLength": 2,
+    "throughput": 1.9312848838332146
+  },
+  "systemMetrics": {
+    "cpu": {
+      "average": 43.07199999999998,
+      "min": 25.5,
+      "max": 70.4,
+      "median": 40.1
+    },
+    "memory": {
+      "average": 20481.225333333325,
+      "min": 20336.2,
+      "max": 20666.3,
+      "median": 20479.2
+    },
+    "temperature": {
+      "average": 55.76933333333333,
+      "min": 51.4,
+      "max": 62.6,
+      "median": 55
+    }
+  },
+  "browserMetrics": {
+    "jsHeapMemory": {
+      "averageMB": 9.5367431640625,
+      "minMB": 9.5367431640625,
+      "maxMB": 9.5367431640625,
+      "medianMB": 9.5367431640625,
+      "averagePercent": 0.8849557522123892,
+      "maxPercent": 0.8849557522123894
+    },
+    "networkConnection": {
+      "effectiveType": "4g",
+      "downlinkMbps": 8.3,
+      "rttMs": 50,
+      "saveData": false
+    },
+    "pageLoad": {
+      "totalLoadTime": 11833,
+      "domInteractiveTime": 11474,
+      "domCompleteTime": 11833,
+      "dnsLookupTime": 0,
+      "tcpConnectTime": 0,
+      "responseTime": 30,
+      "processingTime": 2294,
+      "redirectTime": 0
+    },
+    "clientInfo": {
+      "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36",
+      "platform": "Linux armv81",
+      "language": "en-US",
+      "cookiesEnabled": true,
+      "devicePixelRatio": 3,
+      "screenWidth": 360,
+      "screenHeight": 780,
+      "viewportWidth": 360,
+      "viewportHeight": 643
+    },
+    "resources": {
+      "count": 116,
+      "totalDuration": 185042.59999999974,
+      "avgDuration": 1595.1948275862046,
+      "byType": {
+        "link": {
+          "count": 3,
+          "totalDuration": 502.30000000004657
+        },
+        "script": {
+          "count": 4,
+          "totalDuration": 2285.4000000000233
+        },
+        "fetch": {
+          "count": 109,
+          "totalDuration": 182254.89999999967
+        }
+      }
+    },
+    "userInteractions": {
+      "clicks": 10,
+      "keyPresses": 4,
+      "scrollEvents": 865,
+      "formSubmissions": 0,
+      "textSelections": 0,
+      "inputEvents": 5,
+      "lastActivity": 1752954946937,
+      "sessions": [
+        {
+          "startTime": 1752954793027,
+          "endTime": 1752954793027
+        },
+        {
+          "startTime": 1752954869232,
+          "endTime": null
+        }
+      ]
+    }
+  },
+  "errors": []
+}

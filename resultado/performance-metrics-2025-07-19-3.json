@@ -1,0 +1,38 @@
+﻿{
+  "collectionPeriod": {
+    "start": 1752954864203,
+    "end": 1752955080449,
+    "duration": 216246
+  },
+  "translationMetrics": {
+    "totalTranslations": 5,
+    "averageResponseTime": 830.6,
+    "minResponseTime": 567,
+    "maxResponseTime": 1125,
+    "medianResponseTime": 765,
+    "averageTextLength": 10,
+    "throughput": 1.387308898199273
+  },
+  "systemMetrics": {
+    "cpu": {
+      "average": 39.50200000000001,
+      "min": 25.3,
+      "max": 72.1,
+      "median": 36.4
+    },
+    "memory": {
+      "average": 20492.498,
+      "min": 20344.8,
+      "max": 20629.3,
+      "median": 20503.75
+    },
+    "temperature": {
+      "average": 54.87799999999999,
+      "min": 51.3,
+      "max": 63,
+      "median": 54.1
+    }
+  },
+  "browserMetrics": null,
+  "errors": []
+}

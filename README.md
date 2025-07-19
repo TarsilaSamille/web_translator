@@ -140,19 +140,6 @@ metrics = requests.get('http://localhost:5000/api/system-metrics')
 - **Texto médio** (11-25 palavras): 387-445ms
 - **Texto longo** (26-50 palavras): 612-698ms
 
-## 🧪 Testes e Benchmark
-
-### Executar Testes
-```bash
-# Teste básico do servidor
-./scripts/raspberry_pi_setup.sh test
-
-# Benchmark completo
-./scripts/raspberry_pi_setup.sh benchmark
-
-# Monitoramento em tempo real
-./scripts/raspberry_pi_setup.sh monitor
-```
 
 ### Benchmark Customizado
 ```bash
@@ -193,73 +180,57 @@ enhanced-edge-nlp-translation/
 └── 🔍 corrections/                 # Correções de tradução
 ```
 
-## 🔬 Pesquisa e Publicações
+## 🌐 Deployment e Acesso
 
-Este projeto contribui para a pesquisa em:
-- **Edge Computing**: Otimização para dispositivos com recursos limitados
-- **NLP para Idiomas de Baixo Recurso**: Foco em Hausa e Bidaio-Jagoi
-- **Tradução Neural**: Implementação eficiente de modelos LSTM
-- **Interface Humano-Computador**: Design de interfaces para traduções
+### 🚀 Sistema Online
+O sistema está atualmente hospedado e acessível nos seguintes endereços:
 
-### Artigo Científico
-📄 **Enhanced Edge NLP Translation System: Multilingual Support and Web Interface for Low-Resource Languages in Raspberry Pi Environments**
+- **URL Pública**: [https://web-translator.onrender.com](https://web-translator.onrender.com)
+- **Plataforma**: Render Cloud Platform
 
-Disponível em: `docs/Enhanced_Edge_NLP_Translation_System.tex`
+### 📊 Especificações do Deployment
+- **Plataforma**: Render Free Tier
+- **Recursos**: 256MB RAM, Shared CPU
+- **Runtime**: Python 3.11.11
+- **Sistema**: Linux x86_64
+- **Uptime**: 24/7 (com limitações free tier)
 
-## 🤝 Contribuindo
+### 🎯 Funcionalidades Online
+✅ Tradução Hausa-English  
+✅ Tradução English-Snejag  
+✅ Interface web responsiva  
+✅ Métricas de performance em tempo real  
+✅ Suporte desktop e mobile  
+✅ Histórico de traduções  
+✅ Sistema de correções  
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+### 🔗 GitHub Repository
+- **Código Fonte**: [https://github.com/tarsilasamille/web_translator](https://github.com/tarsilasamille/web_translator)
+- **Documentação**: Disponível no repositório
+- **Issues e Suporte**: Via GitHub Issues
 
-## 🐛 Troubleshooting
+## 📱 Análise de Performance Cross-Platform
 
-### Problemas Comuns
+### 🖥️ Performance Desktop vs Mobile
 
-**1. Erro de memória no Raspberry Pi**
-```bash
-# Aumentar swap
-sudo dphys-swapfile swapoff
-sudo sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile
-sudo dphys-swapfile setup
-sudo dphys-swapfile swapon
-```
+Análise comparativa realizada em julho de 2025 demonstra variações significativas de performance entre plataformas:
 
-**2. Modelos não carregam**
-```bash
-# Verificar integridade dos modelos
-python -c "from inference import Translator; t = Translator('models/hausa-english-translator'); t.load_model()"
-```
+| Métrica | Mac Desktop | Android Mobile | Diferença |
+|---------|-------------|----------------|-----------|
+| **Tempo de Resposta Médio** | 830.6ms | 5942.2ms | 7.15× mais lento |
+| **Tempo Máximo** | 1125ms | 15122ms | 13.4× variação |
+| **Throughput** | 1.38 trans/min | 1.93 trans/min | Mobile superior |
 
-**3. Performance baixa**
-```bash
-# Usar script de benchmark
-./scripts/raspberry_pi_setup.sh benchmark
-```
+### 🔍 Fatores de Performance
+- **Desktop (Mac + WiFi)**: Resposta quase em tempo real
+- **Mobile (Android + 4G)**: Latência de rede (50ms base) impacta significativamente
+- **Servidor**: Recursos consistentes (39-43% CPU) independente da plataforma
+- **Browser**: Safari vs Chrome mostram diferenças de rendering
 
-## 📜 Licença
+### 🎯 Otimizações Implementadas
+✅ Design responsivo para mobile  
+✅ Lazy loading de recursos  
+✅ Cache inteligente no browser  
+✅ Progressive web app features  
+✅ Monitoramento de rede adaptativo  
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 🙏 Agradecimentos
-
-- **Watt et al.** pelo trabalho original em Edge NLP
-- **Comunidade Hausa** pelo suporte linguístico
-- **Contribuidores do Bidaio-Jagoi** pelos dados linguísticos
-- **Raspberry Pi Foundation** pela plataforma de hardware
-- **TensorFlow Team** pela framework de machine learning
-
----
-
-<p align="center">
-  <b>🌍 Democratizando a tradução neural através de edge computing</b>
-</p>
-
-<p align="center">
-  <i>Tornando a tradução automática acessível em áreas de baixa conectividade</i>
-</p>
-   - Utilize os comandos sugeridos na aba "Ferramentas" para rodar diagnósticos diretamente no terminal do Render.
-
-> **Dica:** Sempre consulte a página de diagnóstico antes de abrir um chamado de suporte. Ela contém todas as informações necessárias para identificar rapidamente a causa de falhas no carregamento de modelos.
