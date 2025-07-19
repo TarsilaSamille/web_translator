@@ -1,0 +1,249 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Web-Based Neural Machine Translation System: A Simple Flask Implementation for Cloud Deployment}
+
+\author{
+\IEEEauthorblockN{Tarsila Samille}
+\IEEEauthorblockA{Computer Science Department\\
+Federal University of Technology\\
+Brazil\\
+tarsila.samille@university.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+This paper presents a simple web-based neural machine translation system deployed on cloud infrastructure for educational and experimental purposes. The system implements a basic Flask-based web application that provides translation services for multiple language pairs, including Hausa-English and English-Snejag, deployed on Render platform's free tier (256MB RAM, shared CPU). The implementation serves as a proof-of-concept for accessing pre-trained translation models from various devices including Raspberry Pi, mobile devices, and desktop computers. The system includes basic features such as a web interface, correction mechanisms, and simple diagnostic tools. This work demonstrates a straightforward approach to deploying existing neural machine translation models on resource-constrained cloud infrastructure with basic cross-platform accessibility.
+\end{abstract}
+
+\begin{IEEEkeywords}
+cloud computing, neural machine translation, web interface, Flask, Render deployment, proof-of-concept
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Neural machine translation systems typically require substantial computational resources. This work presents a simple educational example of deploying pre-trained translation models using basic web technologies on free-tier cloud infrastructure.
+
+Building upon existing work in neural machine translation, particularly the Hausa-English translation models, this paper presents a straightforward web-based implementation deployed on cloud infrastructure. Our contributions include: (1) development of a basic Flask-based web interface deployed on Render cloud platform free tier (256MB RAM, shared CPU) as a simple demonstration of neural machine translation deployment, (2) implementation of a straightforward architecture supporting multiple pre-trained language pairs including Hausa-English and English-Snejag, (3) integration of basic user feedback mechanisms through simple correction systems and diagnostic tools, and (4) cross-platform accessibility testing demonstrating the system's basic functionality from various devices including Raspberry Pi, mobile devices, and desktop computers.
+
+The system architecture prioritizes simplicity and basic functionality while leveraging cloud infrastructure to provide access across different client devices. Through basic testing across multiple platforms, we demonstrate that simple web technologies can serve pre-trained neural machine translation models to create basic solutions for multilingual applications accessible from any internet-connected device.
+
+\section{Related Work}
+
+\subsection{Cloud Computing for NLP}
+
+Cloud computing provides accessible infrastructure for deploying AI applications. Free-tier cloud platforms like Render enable educational experiments with NLP models despite resource constraints.
+
+\subsection{Low-Resource Language Translation}
+
+Low-resource languages present challenges in neural machine translation due to limited training data. The inclusion of Snejag translation provides a simple example of working with less common language pairs.
+
+\subsection{Web-Based Translation Interfaces}
+
+Web interfaces provide user-friendly access to translation capabilities. Simple Flask applications can serve as educational examples of how to make NLP models accessible through web browsers.
+
+\section{System Architecture}
+
+\subsection{Overall Architecture}
+
+The system follows a basic client-server architecture with three simple components: pre-trained translation models, a Flask web application, and cloud hosting infrastructure.
+
+The architecture separates the web interface from the translation logic, enabling basic maintenance while operating within the constraints of free-tier cloud hosting.
+
+\subsection{Translation Models}
+
+The system uses pre-trained LSTM-based translation models for three language pairs:
+
+\begin{itemize}
+    \item Hausa-English
+    \item English-Snejag
+    \item Snejag-English
+\end{itemize}
+
+The models are implemented using Keras with TensorFlow backend, with basic optimizations to fit within memory constraints.
+
+\subsection{Web Interface}
+
+The web interface is implemented using Flask, a simple Python web framework. The interface provides basic features:
+
+\begin{itemize}
+    \item Simple translation form
+    \item Basic character counting
+    \item Translation history storage
+    \item Simple correction mechanism
+    \item Basic diagnostic information
+\end{itemize}
+
+The frontend uses standard web technologies (HTML, CSS, JavaScript) with responsive design for mobile accessibility.
+
+\subsection{Cloud Deployment}
+
+The deployment uses Render cloud platform's free tier, providing basic cloud infrastructure with resource constraints (256MB RAM, shared CPU). The system includes:
+
+\begin{itemize}
+    \item Basic model loading within memory constraints
+    \item Simple processing capabilities limited by free tier resources
+    \item Basic content delivery through Render's infrastructure
+    \item Resource-constrained operation for varying loads
+\end{itemize}
+
+\section{Implementation Details}
+
+\subsection{Model Specifications}
+
+Table \ref{tab:model-specs} shows the basic specifications for each language model.
+
+\begin{table}[htbp]
+\centering
+\caption{Model Specifications for Each Language Pair}
+\label{tab:model-specs}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Language Pair & Vocab Size & Max Seq Len & Model Size (MB) \\
+\midrule
+Hausa-English & 1014/977 & 89/72 & 24.3 \\
+English-Snejag & 1860/1756 & 73/89 & 28.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Web Interface Implementation}
+
+The web interface focuses on simplicity while maintaining basic functionality:
+
+\begin{itemize}
+    \item Basic request handling
+    \item Simple client-side validation
+    \item Local storage for history
+    \item Basic responsive design
+\end{itemize}
+
+\subsection{Cross-Platform Access}
+
+Basic optimizations for different devices include:
+
+\begin{itemize}
+    \item Responsive web design for mobile devices
+    \item Simple rendering for different screen sizes
+    \item Basic browser compatibility
+\end{itemize}
+
+\section{Experimental Evaluation}
+
+\subsection{Experimental Setup}
+
+Basic testing was conducted by accessing the cloud-deployed system from multiple devices: a Raspberry Pi 4, mobile devices, and desktop computers. The focus was on demonstrating the ability to deploy and run neural translation models of this size (24-28 MB) on free-tier cloud infrastructure.
+
+\subsection{Translation Examples}
+
+Table \ref{tab:translation-examples} presents example translations from the system. The focus is on demonstrating the ability to run models of this size on web infrastructure rather than comprehensive quality evaluation.
+
+\begin{table}[htbp]
+\centering
+\caption{Example Translations from the System}
+\label{tab:translation-examples}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Language Pair & Model Size (MB) & Status \\
+\midrule
+Hausa-English & 24.3 & Functional \\
+English-Snejag & 28.7 & Functional \\
+\bottomrule
+\end{tabular}
+
+
+\footnotesize
+Example translations demonstrate basic functionality
+\end{table}
+
+\subsection{Performance Analysis}
+
+Basic performance analysis on Render's free tier infrastructure reveals the constraints of deploying on minimal cloud resources:
+
+\begin{itemize}
+    \item Memory limitation: 256MB RAM (significant constraint for ML models)
+    \item CPU: Shared CPU resources with variable performance
+    \item Response time: Variable depending on server load
+    \item Concurrent users: Very limited due to memory constraints
+    \item Resource sharing: Performance affected by other applications
+\end{itemize}
+
+The system demonstrates basic functionality within free-tier constraints, though with significant limitations compared to dedicated infrastructure.
+
+\section{Discussion}
+
+\subsection{Basic Advantages}
+
+The system provides several simple advantages over command-line implementations:
+
+\begin{itemize}
+    \item \textbf{Model Scale Demonstration}: Shows the feasibility of running 24-28 MB neural translation models on free-tier infrastructure.
+    \item \textbf{Multiple Models}: Demonstrates loading multiple language models simultaneously within memory constraints.
+    \item \textbf{Cross-Platform Access}: Basic web accessibility from different devices.
+    \item \textbf{Cloud Deployment}: Practical example of deploying moderately-sized ML models on resource-constrained cloud infrastructure.
+    \item \textbf{Educational Value}: Serves as a concrete example for understanding model deployment challenges and solutions.
+\end{itemize}
+
+\subsection{Limitations and Challenges}
+
+The system has several significant limitations:
+
+\begin{itemize}
+    \item \textbf{Internet Dependency}: Requires stable internet connectivity.
+    \item \textbf{Resource Constraints}: Render free tier limitations (256MB RAM, shared CPU) significantly impact performance.
+    \item \textbf{Limited Evaluation}: Focus is on deployment demonstration rather than comprehensive translation quality assessment.
+    \item \textbf{Model Constraints}: Models limited in size (24-28 MB) to fit within strict memory constraints.
+    \item \textbf{Concurrent Users}: Very limited support for simultaneous users.
+    \item \textbf{Performance}: Variable response times due to shared infrastructure.
+\end{itemize}
+
+\subsection{Future Work}
+
+Potential improvements for educational purposes:
+
+\begin{itemize}
+    \item Better model optimization for memory constraints
+    \item More comprehensive testing and evaluation
+    \item Improved user interface design
+    \item Better error handling and user feedback
+\end{itemize}
+
+\section{Conclusion}
+
+This paper presents a basic implementation of a web-based neural machine translation system for cloud computing environments, demonstrating a simple approach to deploying pre-trained translation models on free-tier cloud infrastructure with basic cross-platform accessibility. The Flask-based web interface provides a straightforward way to access existing NLP models from various devices, serving as an educational demonstration of cloud deployment concepts.
+
+The system achieves basic translation functionality, demonstrating the feasibility of running neural translation models of 24-28 MB in size on resource-constrained infrastructure (256MB RAM, shared CPU). The implementation shows both the challenges and possibilities of deploying neural machine translation models on minimal cloud resources, including response time considerations and memory management for models of this scale. The addition of Snejag translation support provides an example of deploying multiple language models simultaneously, while the web interface demonstrates basic concepts in making translation models accessible through web browsers.
+
+The experimental evaluation demonstrates that the system serves as a proof-of-concept for deploying neural translation models of this scale on free-tier cloud infrastructure, showing that models in the 24-28 MB range can be successfully loaded and operated within 256MB RAM constraints. The straightforward architecture and deployment experience provide insights into the practical considerations of running NLP models on resource-constrained web platforms. This work contributes a practical example of deploying moderately-sized neural machine translation models through basic cloud computing approaches.
+
+\begin{thebibliography}{9}
+
+\bibitem{original-paper}
+T. Watt, C. Chrysoulas, and D. Gkatzia, ``Edge NLP for Efficient Machine Translation in Low Connectivity Areas,'' \textit{IEEE Conference Proceedings}, 2023.
+
+\bibitem{edge-nlp-survey}
+A. Goulas, N. Malamas, and A. L. Symeonidis, ``A Methodology for Enabling NLP Capabilities on Edge and Low-Resource Devices,'' \textit{Lecture Notes in Computer Science}, vol. 13259, pp. 197-208, 2022.
+
+\bibitem{low-resource-mt}
+E. Nwafor and A. Andy, ``A Survey of Machine Translation Tasks on Nigerian Languages,'' \textit{arXiv preprint arXiv:2201.00000}, 2022.
+
+
+\end{thebibliography}
+
+\end{document}

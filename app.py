@@ -1204,10 +1204,44 @@ def get_system_metrics():
         memory = psutil.virtual_memory()
         memory_used_mb = round(memory.used / (1024 * 1024), 1)
         
+        # Detectar se é Raspberry Pi
+        is_raspberry_pi = False
+        raspberry_pi_model = None
+        disk_usage = None
+        
+        try:
+            # Verificar se é Raspberry Pi usando o arquivo /proc/cpuinfo
+            if os.path.exists('/proc/cpuinfo'):
+                with open('/proc/cpuinfo', 'r') as f:
+                    cpuinfo = f.read()
+                    if 'Raspberry Pi' in cpuinfo or 'BCM' in cpuinfo:
+                        is_raspberry_pi = True
+                        # Extrair modelo se possível
+                        for line in cpuinfo.split('\n'):
+                            if 'Model' in line:
+                                raspberry_pi_model = line.split(':')[1].strip()
+                                break
+            
+            # Obter uso de disco (específico para Raspberry Pi ou qualquer servidor)
+            disk = psutil.disk_usage('/')
+            disk_usage = {
+                'total': round(disk.total / (1024 * 1024 * 1024), 1),  # GB
+                'used': round(disk.used / (1024 * 1024 * 1024), 1),    # GB
+                'free': round(disk.free / (1024 * 1024 * 1024), 1),    # GB
+                'percent': disk.percent
+            }
+        except Exception as e:
+            print(f"Erro ao detectar Raspberry Pi: {e}")
+        
         # Temperatura do sistema (se disponível)
         temperature = None
         try:
-            if hasattr(psutil, 'sensors_temperatures'):
+            # Método específico para Raspberry Pi
+            if is_raspberry_pi and os.path.exists('/sys/class/thermal/thermal_zone0/temp'):
+                with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
+                    temperature = round(float(f.read()) / 1000.0, 1)
+            # Método genérico
+            elif hasattr(psutil, 'sensors_temperatures'):
                 temps = psutil.sensors_temperatures()
                 if temps:
                     # Tentar obter temperatura da CPU
@@ -1216,8 +1250,8 @@ def get_system_metrics():
                             if entries:
                                 temperature = round(entries[0].current, 1)
                                 break
-        except:
-            pass
+        except Exception as e:
+            print(f"Erro ao obter temperatura: {e}")
         
         # Se não conseguir obter temperatura, usar um valor padrão
         if temperature is None:
@@ -1244,7 +1278,14 @@ def get_system_metrics():
             'memory_usage': memory_used_mb,
             'temperature': temperature,
             'translations_today': translations_today,
-            'timestamp': datetime.datetime.now().isoformat()
+            'timestamp': datetime.datetime.now().isoformat(),
+            'platform': platform.system(),
+            'architecture': platform.machine(),
+            'is_raspberry_pi': is_raspberry_pi,
+            'raspberry_pi_model': raspberry_pi_model if is_raspberry_pi else None,
+            'disk_usage': disk_usage,
+            'python_version': platform.python_version(),
+            'encoding': sys.getdefaultencoding()
         })
         
     except ImportError:

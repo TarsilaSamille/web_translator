@@ -49,6 +49,7 @@
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
+            background-color: #fff;
         }
 
         .status-ok {
@@ -170,6 +171,112 @@
             margin: 5px 0;
             border-radius: 3px;
         }
+
+        .metrics-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metrics-card {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .metrics-card h4 {
+            margin-top: 0;
+            color: #333;
+            font-size: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .metrics-card ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .metrics-card ul li {
+            padding: 4px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #f9f9f9;
+        }
+
+        .metrics-card ul li:last-child {
+            border-bottom: none;
+        }
+
+        .metrics-details {
+            margin-top: 20px;
+        }
+
+        .metrics-details h4 {
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .metrics-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .metrics-table th {
+            background-color: #f0f0f0;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .metrics-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .comparative-box {
+            background-color: #f0f8ff;
+            border-left: 4px solid #0077cc;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .comparative-box p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 
@@ -177,6 +284,7 @@
     <div class="container">
         <h1>Diagnóstico do Sistema de Tradução</h1>
 
+        <!-- Aba de Diagnóstico do Sistema -->
         <div class="tab-container">
             <div class="tab-buttons">
                 <button class="tab-btn active" data-tab="system">Sistema</button>
@@ -305,6 +413,208 @@
                             reinicia o servidor</p>
                     </div>
                     <p><strong>Nota:</strong> Esses comandos devem ser executados no terminal do serviço Render.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba de Métricas -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn" onclick="openTab('system-info')">Sistema</button>
+                <button class="tab-btn" onclick="openTab('models-info')">Modelos</button>
+                <button class="tab-btn" onclick="openTab('logs-info')">Logs</button>
+                <button class="tab-btn" onclick="openTab('errors-info')">Erros</button>
+                <button class="tab-btn" onclick="openTab('tests-info')">Testes</button>
+                <button class="tab-btn" onclick="openTab('browser-metrics')">Navegador</button>
+                <button class="tab-btn" onclick="openTab('comparative-metrics')">Comparativo</button>
+            </div>
+
+            <!-- Conteúdo da Aba de Sistema -->
+            <div id="system-info" class="tab-content">
+                <h2>Status do Sistema</h2>
+
+                <button id="refresh-system" class="refresh-btn">Atualizar Dados</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Informações do Servidor</h3>
+                    <div id="server-info">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Ambiente</h3>
+                    <div id="environment-info">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Estado dos Modelos</h3>
+                    <div id="models-status">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Conteúdo da Aba de Modelos -->
+            <div id="models-info" class="tab-content">
+                <h2>Informações dos Modelos</h2>
+
+                <button id="refresh-models" class="refresh-btn">Atualizar Dados</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Modelos Disponíveis</h3>
+                    <div id="available-models">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Modelos Carregados</h3>
+                    <div id="loaded-models">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Conteúdo da Aba de Logs -->
+            <div id="logs-info" class="tab-content">
+                <h2>Logs do Sistema</h2>
+
+                <button id="refresh-logs" class="refresh-btn">Atualizar Logs</button>
+                <button id="copy-logs" class="copy-btn">Copiar Logs</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Logs Recentes</h3>
+                    <div id="recent-logs" class="log-container">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Conteúdo da Aba de Erros -->
+            <div id="errors-info" class="tab-content">
+                <h2>Erros Recentes</h2>
+
+                <button id="refresh-errors" class="refresh-btn">Atualizar Erros</button>
+                <button id="copy-errors" class="copy-btn">Copiar Erros</button>
+
+                <div class="diagnostic-panel">
+                    <h3>Erros do Sistema</h3>
+                    <div id="system-errors" class="log-container">Carregando...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Erros de Carregamento de Modelos</h3>
+                    <div id="model-errors" class="log-container">Carregando...</div>
+                </div>
+            </div>
+
+            <!-- Conteúdo da Aba de Testes -->
+            <div id="tests-info" class="tab-content">
+                <h2>Testes de Diagnóstico</h2>
+
+                <div class="diagnostic-panel">
+                    <h3>Teste de Carregamento de Modelos</h3>
+                    <select id="model-select">
+                        <option value="">Selecione um modelo para testar...</option>
+                    </select>
+                    <button id="test-model-btn" class="refresh-btn">Testar Modelo</button>
+                    <div id="test-results" class="log-container">Selecione um modelo para testar...</div>
+                </div>
+
+                <div class="diagnostic-panel">
+                    <h3>Teste de Tradução</h3>
+                    <select id="model-select-translation">
+                        <option value="">Selecione um modelo para tradução...</option>
+                    </select>
+                    <input type="text" id="test-text" placeholder="Digite um texto para traduzir..."
+                        style="width: 300px; padding: 5px;">
+                    <button id="test-translation-btn" class="refresh-btn">Testar Tradução</button>
+                    <div id="translation-results" class="log-container">Digite um texto para traduzir...</div>
+                </div>
+            </div>
+
+            <!-- Conteúdo da Aba de Métricas do Navegador -->
+            <div id="browser-metrics" class="tab-content">
+                <div class="diagnostic-panel">
+                    <h3>Métricas do Navegador</h3>
+                    <p>Dados de desempenho coletados no navegador cliente.</p>
+
+                    <div class="action-buttons">
+                        <button id="refresh-browser-metrics" class="action-btn">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                        <button id="copy-browser-metrics" class="action-btn">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button id="export-browser-metrics" class="action-btn">
+                            <i class="fas fa-download"></i> Exportar JSON
+                        </button>
+                    </div>
+
+                    <div class="metrics-dashboard">
+                        <div class="metrics-card">
+                            <h4>Memória do JavaScript</h4>
+                            <div id="js-memory-stats">Carregando...</div>
+                        </div>
+
+                        <div class="metrics-card">
+                            <h4>Conexão de Rede</h4>
+                            <div id="network-stats">Carregando...</div>
+                        </div>
+
+                        <div class="metrics-card">
+                            <h4>Tempo de Carregamento</h4>
+                            <div id="page-load-stats">Carregando...</div>
+                        </div>
+
+                        <div class="metrics-card">
+                            <h4>Recursos da Página</h4>
+                            <div id="resource-stats">Carregando...</div>
+                        </div>
+
+                        <div class="metrics-card">
+                            <h4>Interação do Usuário</h4>
+                            <div id="user-interaction-stats">Carregando...</div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-details">
+                        <h4>Relatório Completo de Métricas do Navegador</h4>
+                        <pre id="browser-metrics-full" class="log-container">Carregando dados...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conteúdo da Aba de Métricas Comparativas -->
+            <div id="comparative-metrics" class="tab-content">
+                <div class="diagnostic-panel">
+                    <h3>Relatório Comparativo: Servidor e Cliente</h3>
+                    <p>Comparação detalhada entre as métricas do servidor e do computador local (navegador).</p>
+
+                    <div class="action-buttons">
+                        <button id="refresh-comparative" class="action-btn">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                        <button id="copy-comparative" class="action-btn">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                        <button id="export-comparative-json" class="action-btn">
+                            <i class="fas fa-download"></i> Exportar JSON
+                        </button>
+                    </div>
+
+                    <div class="metrics-comparison">
+                        <div class="metrics-card" id="server-metrics">
+                            <h4>Métricas do Servidor</h4>
+                            <p>Carregando dados do servidor...</p>
+                        </div>
+
+                        <div class="metrics-card" id="client-metrics">
+                            <h4>Métricas do Cliente (Navegador)</h4>
+                            <p>Carregando dados do cliente...</p>
+                        </div>
+
+                        <div class="metrics-card" id="comparative-metrics">
+                            <h4>Métricas Comparativas</h4>
+                            <p>Carregando dados comparativos...</p>
+                        </div>
+                    </div>
+
+                    <div class="metrics-details">
+                        <h4>Relatório Comparativo Completo</h4>
+                        <pre id="comparative-report-full" class="log-container">Carregando dados...</pre>
+                    </div>
                 </div>
             </div>
         </div>
@@ -708,11 +1018,99 @@
 
         document.getElementById('full-diagnostic-btn').addEventListener('click', runFullDiagnostic);
 
-        // Carregar dados iniciais
-        loadSystemInfo();
-        loadModelsDetails();
-        loadLogs();
-        loadErrors();
+        // Função para carregar métricas do navegador
+        async function loadBrowserMetrics() {
+            try {
+                const response = await fetch('/api/diagnostic/browser-metrics');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+
+                // Atualizar estatísticas de memória do JavaScript
+                const jsMemoryStats = document.getElementById('js-memory-stats');
+                jsMemoryStats.innerHTML = `
+                    <strong>Uso de Memória:</strong> ${data.js_memory_usage} MB<br>
+                    <strong>Limite de Memória:</strong> ${data.js_memory_limit} MB
+                `;
+
+                // Atualizar estatísticas de conexão de rede
+                const networkStats = document.getElementById('network-stats');
+                networkStats.innerHTML = `
+                    <strong>Latência:</strong> ${data.network_latency} ms<br>
+                    <strong>Taxa de Transferência:</strong> ${data.network_throughput} Mbps
+                `;
+
+                // Atualizar estatísticas de tempo de carregamento
+                const pageLoadStats = document.getElementById('page-load-stats');
+                pageLoadStats.innerHTML = `
+                    <strong>Tempo Total:</strong> ${data.page_load_time} ms<br>
+                    <strong>Recursos Carregados:</strong> ${data.resources_loaded} / ${data.total_resources}
+                `;
+
+                // Atualizar estatísticas de recursos da página
+                const resourceStats = document.getElementById('resource-stats');
+                resourceStats.innerHTML = `
+                    <strong>Imagens:</strong> ${data.images_count} (${data.images_size} KB)<br>
+                    <strong>Scripts:</strong> ${data.scripts_count} (${data.scripts_size} KB)<br>
+                    <strong>Estilos:</strong> ${data.styles_count} (${data.styles_size} KB)
+                `;
+
+                // Atualizar estatísticas de interação do usuário
+                const userInteractionStats = document.getElementById('user-interaction-stats');
+                userInteractionStats.innerHTML = `
+                    <strong>Cliques:</strong> ${data.user_clicks}<br>
+                    <strong>Movimentos do Mouse:</strong> ${data.mouse_movements}<br>
+                    <strong>Teclado:</strong> ${data.keyboard_events}
+                `;
+            } catch (error) {
+                console.error('Erro ao carregar métricas do navegador:', error);
+                document.getElementById('js-memory-stats').innerHTML = `<p class="log-error">Erro ao carregar métricas: ${error.message}</p>`;
+            }
+        }
+
+        // Função para alternar entre abas
+        function openTab(tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+
+            const tabButtons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove("active");
+            }
+
+            document.getElementById(tabName).classList.add("active");
+
+            // Encontrar o botão correspondente à aba ativa
+            const buttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < buttons.length; i++) {
+                if (buttons[i].getAttribute("onclick") === `openTab('${tabName}')`) {
+                    buttons[i].classList.add("active");
+                }
+            }
+
+            // Carregar dados específicos da aba se necessário
+            if (tabName === 'browser-metrics') {
+                loadBrowserMetrics();
+            } else if (tabName === 'comparative-metrics') {
+                loadComparativeReport();
+            }
+        }
+
+        // Abrir a primeira aba por padrão quando a página carregar
+        document.addEventListener('DOMContentLoaded', function () {
+            // Configurar aba inicial
+            const firstTab = document.querySelector('.tab-btn');
+            if (firstTab) {
+                const tabName = firstTab.getAttribute('onclick').match(/'(.*?)'/)[1];
+                openTab(tabName);
+            }
+
+            // Inicializar eventos
+            loadSystemInfo();
+            loadModelsDetails();
+        });
     </script>
 </body>
 
