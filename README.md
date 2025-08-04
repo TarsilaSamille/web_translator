@@ -23,7 +23,6 @@ Este projeto estende o trabalho seminal de **Edge NLP for Efficient Machine Tran
 - 🌐 **Suporte Multilíngue**: 2 pares de idiomas suportados
 - 💾 **Histórico Local**: Armazenamento de traduções no navegador
 - 🔧 **Correções Colaborativas**: Sistema de feedback para melhorar traduções
-- 🍓 **Raspberry Pi Ready**: Otimizado para hardware ARM
 
 ### 🎨 Interface Web
 - Design responsivo e moderno
